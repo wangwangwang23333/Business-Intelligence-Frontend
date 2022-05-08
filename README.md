@@ -1,4 +1,4 @@
-# igem
+# BI-Frontend
 
 ## Project setup
 ```
