@@ -7,7 +7,6 @@ import store from './store'
 import "vis/dist/vis.css";
 
 Vue.config.productionTip = false
-
 Vue.use(ElementUI);
 
 new Vue({

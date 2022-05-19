@@ -81,6 +81,53 @@
       :src="require('@/assets/finderBlank.png')"
       v-if="responseData.length == 0 && !loading"
       style="margin-left: -130%;margin-top:20%;width: 30%;"></el-image>
+      
+      <!--控制栏-->
+      <el-col :span="9" style="background: rgba(233,236,239,0.3)">
+        <div style="text-align: left;height: 80vh;">
+          <div 
+          class="sub-title" style="line-height: 5vh;font-weight: bold;margin-left: 5%;margin-top: 3vh;">Searching
+            Entity Condition
+          </div>
+          <el-autocomplete
+              class="input-with-select"
+              style="width: 90%;margin-left: 5%;"
+              v-model="searchText"
+              :fetch-suggestions="querySearch"
+              placeholder="Writer name / Research topic."
+          >
+            <el-select 
+            v-model="findCondition1" 
+            @change="onFindCondition1Change"
+            slot="prepend" placeholder="Please choose">
+              <el-option label="Writer" value="1"></el-option>
+              <el-option label="Topic" value="2"></el-option>
+            </el-select>
+          </el-autocomplete>
+          <div style="font-size:x-large; 
+          cursor:pointer; 
+          margin-left: 50%;
+          color: #FFFFFF;
+          ">
+            <em :class="isConnectionShow ? 'el-icon-caret-top' : 'el-icon-caret-bottom'"
+            @click="openConnectionSearch"
+            ></em>
+          </div>
+          <div>
+            <el-collapse-transition>
+              <div v-show="isConnectionShow">
+                <el-autocomplete
+                  v-model="writerName2"
+                  :fetch-suggestions="querySearch"
+                  placeholder="Input another writer name."
+                  style="width: 90%;margin-left: 5%;"
+                ></el-autocomplete>
+              </div>
+            </el-collapse-transition>
+          </div>
+        </div>
+      </el-col>
+      
       <el-col :span="9" style="background: rgba(233,236,239,0.3)">
         <!--控制栏-->
         <div style="text-align: left;height: 80vh;">
@@ -173,6 +220,15 @@ export default {
   data() {
 
     return {
+      // 关系查询开启
+      isConnectionShow: false,
+
+      // 检索条件
+      findCondition1: "1",
+
+      // 关系筛选中的另一个作者
+      writerName: '',
+
       //检索条件
       loading:false,
       selectedItems:false,
@@ -211,6 +267,28 @@ export default {
     this.nodeMap = new Map()
   },
   methods: {
+    
+    onFindCondition1Change(value){
+      if (this.value != "1") {
+        this.isConnectionShow =false;
+      }
+    },
+
+    openConnectionSearch() {
+      if (this.isConnectionShow) {
+        this.isConnectionShow = false;
+        return;
+      }
+
+      if (this.findCondition1 != "1"){
+        this.$message({
+          message: 'Connection search can only be used when condition is writer!',
+          type: 'warning'
+        });
+        return;
+      }
+      this.isConnectionShow = true;
+    },
 
     downloadFinderData() {
       console.log(this.responseData)
@@ -439,40 +517,40 @@ export default {
         }
       };
 
-      //console.log("container:",_this.container);
-      //console.log("data:",_this.data);
-      //console.log("options:",_this.options);
+      //console.log("container:",this.container);
+      //console.log("data:",this.data);
+      //console.log("options:",this.options);
 
-      _this.network = new Vis.Network(_this.container, _this.data, _this.options);
+      this.network = new Vis.Network(this.container, this.data, this.options);
 
-      _this.network.on("click", params => {
+      this.network.on("click", params => {
         params.event.preventDefault();
-        let nodeId = _this.network.getNodeAt(params.pointer.DOM);
+        let nodeId = this.network.getNodeAt(params.pointer.DOM);
         if (nodeId !== undefined) {
-          _this.network.selectNodes([nodeId]);
-          let sNode = _this.network.getSelectedNodes()[0];
+          this.network.selectNodes([nodeId]);
+          let sNode = this.network.getSelectedNodes()[0];
           let name = this.nodesArray[sNode].label.replace(/\n/g, ' ');
 
           console.log(name.substr(0, 13))
           if (name.substr(0, 13) === "Phage Cluster") {
             console.log(name[14])
-            if (_this.expandedMAPNode.has(name[14])) {
+            if (this.expandedMAPNode.has(name[14])) {
               return;
             } else {
-              _this.expendMAPVis(this.expendMAPVis(name.substr(14)))
-              _this.expandedMAPNode.add(name.substr(14))
-              // _this.initializeOptions();
+              this.expendMAPVis(this.expendMAPVis(name.substr(14)))
+              this.expandedMAPNode.add(name.substr(14))
+              // this.initializeOptions();
             }
           }
         }
       })
 
-      _this.network.on("oncontext", params => {
-        let nodeId = _this.network.getNodeAt(params.pointer.DOM);
+      this.network.on("oncontext", params => {
+        let nodeId = this.network.getNodeAt(params.pointer.DOM);
         if (nodeId != undefined) {
           params.event.preventDefault();
-          _this.network.selectNodes([nodeId]);
-          let sNode = _this.network.getSelectedNodes()[0];
+          this.network.selectNodes([nodeId]);
+          let sNode = this.network.getSelectedNodes()[0];
 
           let name = this.nodesArray[sNode].label.replace(/\n/g, ' ');
 
@@ -529,26 +607,24 @@ export default {
     },
 
     resetAllNodes() {
-      let _this = this;
-      _this.nodes.clear();
-      _this.edges.clear();
-      _this.nodes.add(_this.nodesArray);
-      _this.edges.add(_this.edgesArray);
-      _this.data = {
-        nodes: _this.nodes,
-        edges: _this.edges
+      this.nodes.clear();
+      this.edges.clear();
+      this.nodes.add(this.nodesArray);
+      this.edges.add(this.edgesArray);
+      this.data = {
+        nodes: this.nodes,
+        edges: this.edges
       };
       //   network是一种用于将包含点和线的网络和网络之间的可视化展示
-      _this.network = new Vis.Network(
-          _this.container,
-          _this.data,
-          _this.options
+      this.network = new Vis.Network(
+          this.container,
+          this.data,
+          this.options
       );
     },
     resetAllNodesStabilize() {
-      let _this = this;
-      _this.resetAllNodes();
-      _this.network.stabilize();
+      this.resetAllNodes();
+      this.network.stabilize();
     },
 
     handleSelectionChange(selected) {
