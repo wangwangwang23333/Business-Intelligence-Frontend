@@ -9,16 +9,17 @@
           background-position: top;
           background-size: auto;
           " :style="{'background-image': 'url(' + require('@/assets/home/line-above.svg') + ') '}">
-        <!--      大标题-->
+        <!--大标题-->
         <div style="display: inline-flex; font-size: 4em; padding-top: 2.5em">
-          <img src="@/assets/logo.png" style="width: 1em; height: 1em; margin-right: .5em; padding-top: 15px">
-          <span style=" font-weight: bold;">Phage-MAP</span>
+          <img src="@/assets/BI-logo.png" style=" margin-right: .5em;width: 1.5em;height: 1.5em">
+          <span class="dynamic-animation" style=" font-weight: bold;font-family: Bahnschrift;margin-top: .2em">AMiner-Paper Search System</span>
         </div>
 
         <!--      介绍文字-->
-        <div style="font-size: 2.5em; font-weight: 1; padding-top: 1rem">
-          Phage Microbiome Assist <br>
-          Phagotherapy
+        <div style="font-size: 2.5em; font-weight: 1; padding-top: 1rem"
+              class="dynamic-animation">
+          Paper knowledge graph analysis  <br>
+          and display
         </div>
 
         <!--      按钮-->
@@ -29,8 +30,8 @@
 
         <!--        说明-->
         <div style=" font-size: small; padding-top: .5em; display: inline-block; padding-bottom: 2rem">
-          With the help of Phage-MAP, doctors can quickly find the <br>
-          phage for patients infected with superbugs.
+          With the help of Aminer Search, we can quickly find the <br>
+          collaboration and citation relationships between papers.
         </div>
 
         <!--      嵌入小方块-->
@@ -43,7 +44,9 @@
           font-weight: bold;
           font-size: small;
           color: #fcfcfc;
-        ">
+          box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+        "
+          class="dynamic-animation">
             ILLUSTRATION <br>
             VEDIO
           </div>
@@ -63,8 +66,8 @@
     <!--    过渡banner-->
     <div class="banner" ref="start">
       <span>
-        Extensive use of antibiotics! Emergence of superbugs. How can we treat it? <br>
-        Phagotherapy with the help of Phage-MAP!
+        Want to see basic information about tens of thousands of papers <br>
+        and collaborations between authors? Explore the content below!
       </span>
     </div>
 
@@ -79,7 +82,7 @@
           <!--        标题-->
           <div style="display: inline-block; padding-bottom: 2.5rem;">
             <img src="../assets/home/separater.svg" class="separator">
-            <span class="title" @click="jumpTo(0)"> Bacteriophage Bay </span>
+            <span class="title" @click="jumpTo(0)"> Graph Database</span>
           </div>
           <!--          说明-->
           <div style="padding-bottom: 2.5rem">
@@ -112,12 +115,12 @@
           <!--        标题-->
           <div style="display: inline-block; padding-bottom: 2.5rem;">
             <img src="../assets/home/separater.svg" class="separator">
-            <span class="title" @click="jumpTo(1)"> Phage Finder </span>
+            <span class="title" @click="jumpTo(1)"> Graph Visualization </span>
           </div>
           <!--          说明-->
           <div style="padding-bottom: 2.5rem">
-            By searching, people can find phages <br>
-            that target specific bacteria.
+            By searching, people can find information <br>
+            in different forms of visualization networks.
           </div>
         </div>
       </div>
@@ -130,12 +133,12 @@
           <!--        标题-->
           <div style="display: inline-block; padding-bottom: 2.5rem;">
             <img src="../assets/home/separater.svg" class="separator">
-            <span class="title" @click="jumpTo(2)"> Interactive MAP </span>
+            <span class="title" @click="jumpTo(2)"> Smart Search </span>
           </div>
           <!--          说明-->
           <div style="padding-bottom: 2.5rem">
-            A visual network diagram of the <br>
-            Phage-Superbug interactions.
+            In this section you can search for information about papers <br>
+            and collaborations of different authors.
           </div>
 
         </div>
@@ -158,13 +161,14 @@
 
       <div class="highlight-region"
         :style="{'background-image': 'url(' + require('@/assets/home/line-below.svg') + ') '}">
-        <div style="overflow: hidden; width: 60%;">
+        <div style="overflow: hidden; width: 80%;">
           <!--两行三列-->
-          <el-row>
+          <el-row style="width: 100%">
             <el-col :span="8" v-for="(item,i) in introduction" :key="i">
               <div :class="{
                 'odd-highlight': (i % 2),
-                'even-highlight': !(i % 2)
+                'even-highlight': !(i % 2),
+                'dynamic-animation':1
               }">
                 <span style="font-weight: bold">{{ item.title }}</span>
                 <br>
@@ -304,11 +308,11 @@
             <p>If you have any feedback, please contact us</p>
 
             <b>EMAIL</b>
-            <div>tj_software2021@163.com</div>
+            <div>19921305202@163.com</div>
             <br>
 
             <b>ADDRESS</b>
-            <div>Tongji University, No.1239 siping Road, Yangpu District, Shanghai</div>
+            <div>Tongji University, No.4800 caoan Road, Jiading District, Shanghai</div>
             <br>
           </div>
         </div>
@@ -320,10 +324,7 @@
     <!--    logos-->
     <div style="background: white;">
       <div style="display: inline-flex" class="logo-bar">
-        <img :src="require('../assets/logos/igem.png')">
         <img :src="require('../assets/logos/se.png')">
-        <img :src="require('../assets/logos/slst.png')">
-        <img :src="require('../assets/logos/dni.png')">
       </div>
     </div>
 
@@ -360,7 +361,7 @@
   import { getComment, sendComment } from '@/api/board';
 
   export default {
-    name: 'Home',
+    name: 'home',
     components: {
       videoPlayer,
     },
@@ -545,29 +546,25 @@
           {
             //highlight:'强调',
             title: 'Powerful Data Support',
-            description: 'Bacteriophage Bay stores huge amount of data which can offer support for Phage Finder and Interactive MAP'
+            description: 'We store the cleaned dataset in a high-performance neo-4j graph database with efficient and fast query support.'
           },
           {
             //highlight:'强调',
-            title: 'Accurate Model',
-            description: 'Our team constructs several models to make sure the predicted value can be as consistent with the results in the lab'
+            title: 'Visualization data flow',
+            description: 'Our team implemented an end-to-end visual data flow, supporting the reading and importing of datasets and performing them on the front end.'
           }, {
             //highlight:'强调',
-            title: 'Simple Operation',
-            description: 'Users only need to input some necessary parameters and our software will generate an easy-to-understand result'
+            title: 'Complete functional query',
+            description: 'We completed the basic functional query and kept the query speed within the desired range, and the back-end used .NET to make a big query for the database.'
           }, {
             //highlight:'强调',
-            title: 'User-friendly Interface',
-            description: 'We prepare handbook and instruction video to introduce the usage of every module'
+            title: 'Extra Credit: Storage System',
+            description: 'We have improved the performance of the query through caching and other means, and the specific performance optimization means are described in detail in the documentation.'
           }, {
             //highlight:'强调',
-            title: 'One-step Service',
-            description: 'Our software covers the basic step of finding the host of phages'
-          }, {
-            //highlight:'强调',
-            title: 'Short Runtime',
-            description: 'To make users obtain the results in a short time. we optimize our model and algorithm to make the procedure run faster'
-          },
+            title: 'Extra Credit:Visualization',
+            description: 'Our team has optimized and rewritten the presentation framework of the Knowledge Graph to improve the performance of the front-end, so that users can better view the search results.'
+          }
         ],
         commentNum: 1,
         comments: [
@@ -660,7 +657,7 @@
 
 <style scoped>
   @import "../assets/css/font.css";
-
+  @import url('https://fonts.googleapis.com/css?family=Source+Code+Pro:200,900');
 
   .el-icon-star-on:before {
     font-size: 1.5em !important;
@@ -814,4 +811,21 @@
     color: #fcfcfc;
     border-color: #2c342c;
   }
+
+
+
+.dynamic-animation{
+  -webkit-transition-duration: 0.3s;
+  transition-duration: 0.3s;
+  -webkit-transition-property: transform;
+  transition-property:  transform;
+}
+
+  .dynamic-animation:hover,.dynamic-animation:focus,.dynamic-animation:active {
+    position: relative;
+    transform: scale(1.1);
+  }
+
+
+
 </style>
