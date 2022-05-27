@@ -19,16 +19,16 @@
 
         <!--      大标题-->
         <div style="display: inline-flex; font-size: 4em; padding-top: 3em">
-          <img src="@/assets/logo.png" style="display:inline-block;width: 1em; height: 1em; margin-right: .5em; padding-top: 15px">
-          <span style=" font-weight: bold;">Phage Finder</span>
+          <img src="@/assets/BI-logo.png" style="display:inline-block;width: 1em; height: 1em; margin-right: .5em; padding-top: 15px">
+          <span style=" font-weight: bold;">Graph Visualization</span>
         </div>
 
         <!--        说明-->
         <div
             style=" font-size: medium;  padding-bottom: 1rem;
             padding-top: 6em;">
-            Anyone can use it to find the phage associated<br>
-            with target bacterium.
+          By searching, people can find information <br>
+          in different forms of visualization networks.
         </div>
 
         <!--      按钮-->
@@ -47,7 +47,7 @@
     <!--    过渡banner-->
     <div class="banner" ref="start">
       <span style="font-size: 1.5em;font-weight: bold;margin-bottom: 3em;">
-        Bacteria associated with phages
+        Graph database query
       </span>
 <!--      <br>-->
 <!--      <span>-->

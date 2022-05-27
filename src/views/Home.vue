@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div
-      style="background-image: linear-gradient(to bottom,#2c342c 0%, #2c342c 90%, rgba(0,0,0,0) 90% , rgba(0,0,0,0) 100%)">
+        style="background-image: linear-gradient(to bottom,#2c342c 0%, #2c342c 90%, rgba(0,0,0,0) 90% , rgba(0,0,0,0) 100%)">
       <div style="
           color: #fcfcfc;
           padding-top: 5px;
@@ -58,7 +58,7 @@
     <!--    介绍视频-->
     <div style="margin: 3rem 8vw 4rem 8vw">
       <video-player class="video-player vjs-custom-skin vjs-big-play-centered" ref="videoPlayer" :playsinline="true"
-        :options="playerOptions">
+                    :options="playerOptions">
       </video-player>
     </div>
 
@@ -172,7 +172,7 @@
               }">
                 <span style="font-weight: bold">{{ item.title }}</span>
                 <br>
-               
+
                 <p>{{ item.description }}</p>
               </div>
             </el-col>
@@ -258,7 +258,7 @@
             <i class="el-icon-caret-left"></i>
           </el-button>
           <el-button :disabled="publishedCurrentPage >= (commentNum / 5)"
-            @click="current_change(publishedCurrentPage + 1)" circle>
+                     @click="current_change(publishedCurrentPage + 1)" circle>
             <i class="el-icon-caret-right"></i>
           </el-button>
         </div>
@@ -290,7 +290,7 @@
           <el-row style="margin-top: 2rem;">
             <el-col :span="24">
               <el-input type="textarea" rows=5 placeholder="Message" prefix-icon="el-icon-user-solid" maxlength="256"
-                show-word-limit v-model="content">
+                        show-word-limit v-model="content">
               </el-input>
             </el-col>
           </el-row>
@@ -333,7 +333,7 @@
         <span>You can download the database you need.</span>
       -->
       <el-table :data="tableData.filter(data => !search || data.name.toLowerCase().includes(search.toLowerCase()))"
-        style="width: 100%" max-height="300">
+                style="width: 100%" max-height="300">
         <el-table-column label="Table" prop="table">
         </el-table-column>
         <el-table-column align="right">
@@ -365,149 +365,130 @@
     components: {
       videoPlayer,
     },
-    created() {
+    jumpToAdmin() {
+      this.$router.push({ path: "/admin" });
+    },
+    seeVideo() {
+      this.dialogVisible = true;
+    },
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    jumpTo(index) {
+      if (index == 0) {
+        // 直接下载数据库
+        //alert("正在下载数据库中")
+        this.downloadDatabaseVisible = true;
+      } else if (index == 1) {
+        this.$router.push({ path: "/finder" });
+      } else {
+        this.$router.push({ path: "/map" });
+      }
+    },
+    //发送留言
+    addComment() {
+      //判断是否输入了FirstName
+      if (this.firstname.length == 0) {
+        this.$message({
+          message: 'Please input your first name!',
+          type: 'warning'
+        });
+        return;
+      }
+      if (this.firstname.length > 10) {
+        this.$message({
+          message: 'Your first name should not be longer than 10 words!',
+          type: 'warning'
+        });
+        return;
+      }
+      if (this.lastname.length == 0) {
+        this.$message({
+          message: 'Please input your last name!',
+          type: 'warning'
+        });
+        return;
+      }
+      if (this.lastname.length > 10) {
+        this.$message({
+          message: 'Your last name should not be longer than 10 words!',
+          type: 'warning'
+        });
+        return;
+      }
+      if (this.content == 0) {
+        this.$message({
+          message: 'The content should not be empty!',
+          type: 'warning'
+        });
+        return;
+      }
+      //发送api请求
+      Date.prototype.Format = function (fmt) { // author: meizz
+        var o = {
+          "M+": this.getMonth() + 1, // 月份
+          "d+": this.getDate(), // 日
+          "h+": this.getHours(), // 小时
+          "m+": this.getMinutes(), // 分
+          "s+": this.getSeconds(), // 秒
+          "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+          "S": this.getMilliseconds() // 毫秒
+        };
+        if (/(y+)/.test(fmt))
+          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+      }
+      let datetime = new Date().Format("yyyy-MM-dd hh:mm")
 
-      getComment().then(response => {
-        this.comments = eval(response.data)
-        //按时间倒序排列
-        this.commentNum = this.comments.length
+      let param = {
+        firstname: this.firstname,
+        lastname: this.lastname,
+        time: datetime,
+        content: this.content
+      }
+
+      //发送api请求
+      sendComment(param).then(response => {
+        response;
+
+        //自己的数据添加
+        this.comments.splice(0, 0, param)
+        this.commentNum += 1
+
+        //提醒添加成功
+        this.$message({
+          message: 'You have successfully commented!!',
+          type: 'success'
+        });
+
+        //清空内容
+        this.firstname = ''
+        this.lastname = ''
+        this.content = ''
+
+        //跳转到评论区
+        this.$refs["commentBoard"].scrollIntoView(true);
+
       }).catch(() => {
         this.$message.error("There's something wrong with your network.");
       })
-
-      this.commentNum = this.comments.length;
     },
-    methods: {
-      current_change(publishedCurrentPage) {
-        this.publishedCurrentPage = publishedCurrentPage
-        console.log(this.publishedCurrentPage)
-      },
-      jumpToAdmin() {
-        this.$router.push({ path: "/admin" });
-      },
-      seeVideo() {
-        this.dialogVisible = true;
-      },
-      handleClose() {
-        this.dialogVisible = false;
-      },
-      jumpTo(index) {
-        if (index == 0) {
-          // 直接下载数据库
-          //alert("正在下载数据库中")
-          this.downloadDatabaseVisible = true;
-        } else if (index == 1) {
-          this.$router.push({ path: "/finder" });
-        } else {
-          this.$router.push({ path: "/map" });
-        }
-      },
-      //发送留言
-      addComment() {
-        //判断是否输入了FirstName
-        if (this.firstname.length == 0) {
-          this.$message({
-            message: 'Please input your first name!',
-            type: 'warning'
-          });
-          return;
-        }
-        if (this.firstname.length > 10) {
-          this.$message({
-            message: 'Your first name should not be longer than 10 words!',
-            type: 'warning'
-          });
-          return;
-        }
-        if (this.lastname.length == 0) {
-          this.$message({
-            message: 'Please input your last name!',
-            type: 'warning'
-          });
-          return;
-        }
-        if (this.lastname.length > 10) {
-          this.$message({
-            message: 'Your last name should not be longer than 10 words!',
-            type: 'warning'
-          });
-          return;
-        }
-        if (this.content == 0) {
-          this.$message({
-            message: 'The content should not be empty!',
-            type: 'warning'
-          });
-          return;
-        }
-        //发送api请求
-        Date.prototype.Format = function (fmt) { // author: meizz
-          var o = {
-            "M+": this.getMonth() + 1, // 月份
-            "d+": this.getDate(), // 日
-            "h+": this.getHours(), // 小时
-            "m+": this.getMinutes(), // 分
-            "s+": this.getSeconds(), // 秒
-            "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
-            "S": this.getMilliseconds() // 毫秒
-          };
-          if (/(y+)/.test(fmt))
-            fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
-          for (var k in o)
-            if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
-          return fmt;
-        }
-        let datetime = new Date().Format("yyyy-MM-dd hh:mm")
+    gotoStart() {
+      this.$refs["start"].scrollIntoView(true);
+    },
 
-        let param = {
-          firstname: this.firstname,
-          lastname: this.lastname,
-          time: datetime,
-          content: this.content
-        }
+    handleDownload(index, row) {
+      //console.log(index, row.table);
 
-        //发送api请求
-        sendComment(param).then(response => {
-          response;
+      window.open('files/database/'+row.table+'.csv')
+    },
 
-          //自己的数据添加
-          this.comments.splice(0, 0, param)
-          this.commentNum += 1
+    downloadAllFiles(){
+      window.open('files/database.zip')
 
-          //提醒添加成功
-          this.$message({
-            message: 'You have successfully commented!!',
-            type: 'success'
-          });
-
-          //清空内容
-          this.firstname = ''
-          this.lastname = ''
-          this.content = ''
-
-          //跳转到评论区
-          this.$refs["commentBoard"].scrollIntoView(true);
-
-        }).catch(() => {
-          this.$message.error("There's something wrong with your network.");
-        })
-      },
-      gotoStart() {
-        this.$refs["start"].scrollIntoView(true);
-      },
-
-      handleDownload(index, row) {
-        //console.log(index, row.table);
-
-        window.open('files/database/'+row.table+'.csv')
-      },
-
-      downloadAllFiles(){
-        window.open('files/database.zip')
-
-      },
-
-      
+    },
 
     },
     data() {
@@ -599,60 +580,131 @@
             content: '这个网站真的很赞，我真的哭死'
           },
           {
-            firstname: 'Zihan',
-            lastname: 'Zhang',
-            time: '2021-09-05 10:37',
-            content: 'Good website which helps me in an exam'
+            type: "video/mp4",
+            src: require("../assets/illustration.mp4"), //视频url地址
           },
         ],
-        tableData: [
-          {
-            table: 'bacteria'
-          },
-          {
-            table: 'bacteria_phage_score'
-          },
-          {
-            table: 'bacteria_spacer'
-          },
-          {
-            table: 'bacteria_taxon'
-          },
-          {
-            table: 'bug_score_with_name'
-          },
-          {
-            table: 'phage'
-          },
-          {
-            table: 'phage_bug'
-          },
-          {
-            table: 'result'
-          },
-          {
-            table: 'score_bug'
-          },
-          {
-            table: 'score_with_name'
-          },
-          {
-            table: 'super_bug'
-          }
+        poster: require("../assets/illustrationHeader.png"), //你的封面地址
+        // width: document.documentElement.clientWidth,
+        notSupportedMessage: "The video cannot be wathed now. Please wait.", //允许覆盖Video.js无法播放媒体源时显示的默认信息。
+        controlBar: {
+          timeDivider: true,
+          durationDisplay: true,
+          remainingTimeDisplay: false,
+          fullscreenToggle: true, //全屏按钮
+        },
+      },
+      introduction: [
+        {
+          //highlight:'强调',
+          title: 'Powerful Data Support',
+          description: 'We store the cleaned dataset in a high-performance neo-4j graph database with efficient and fast query support.'
+        },
+        {
+          //highlight:'强调',
+          title: 'Visualization data flow',
+          description: 'Our team implemented an end-to-end visual data flow, supporting the reading and importing of datasets and performing them on the front end.'
+        }, {
+          //highlight:'强调',
+          title: 'Complete functional query',
+          description: 'We completed the basic functional query and kept the query speed within the desired range, and the back-end used .NET to make a big query for the database.'
+        }, {
+          //highlight:'强调',
+          title: 'Extra Credit: Storage System',
+          description: 'We have improved the performance of the query through caching and other means, and the specific performance optimization means are described in detail in the documentation.'
+        }, {
+          //highlight:'强调',
+          title: 'Extra Credit:Visualization',
+          description: 'Our team has optimized and rewritten the presentation framework of the Knowledge Graph to improve the performance of the front-end, so that users can better view the search results.'
+        }
+      ],
+      commentNum: 1,
+      comments: [
+        {
+          firstname: 'Mingjie',
+          lastname: "Wang",
+          time: '2021-09-02 22:35',
+          content: "It is really a great website, and I'm totoally obsseseed with it!"
+        },
+        {
+          firstname: 'Jacky',
+          lastname: "Li",
+          time: '2021-09-03 10:20',
+          content: "Your website definitely helps me a lot since I've been finding such a web for a long time."
+        },
+        {
+          firstname: 'Ziniu',
+          lastname: 'Niu',
+          time: '2021-09-04 01:44',
+          content: 'IGEM HP GAME IS SO FUCKKKKKKKKKKING FUNNY!!'
+        },
+        {
+          firstname: 'Liyou',
+          lastname: 'Wang',
+          time: '2021-09-04 11:20',
+          content: 'A great website but will be better with some more beautiful picture.'
+        },
+        {
+          firstname: '正一',
+          lastname: '卓',
+          time: '2021-09-04 19:21',
+          content: '这个网站真的很赞，我真的哭死'
+        },
+        {
+          firstname: 'Zihan',
+          lastname: 'Zhang',
+          time: '2021-09-05 10:37',
+          content: 'Good website which helps me in an exam'
+        },
+      ],
+      tableData: [
+        {
+          table: 'bacteria'
+        },
+        {
+          table: 'bacteria_phage_score'
+        },
+        {
+          table: 'bacteria_spacer'
+        },
+        {
+          table: 'bacteria_taxon'
+        },
+        {
+          table: 'bug_score_with_name'
+        },
+        {
+          table: 'phage'
+        },
+        {
+          table: 'phage_bug'
+        },
+        {
+          table: 'result'
+        },
+        {
+          table: 'score_bug'
+        },
+        {
+          table: 'score_with_name'
+        },
+        {
+          table: 'super_bug'
+        }
 
-        ],
-        search: ''
+      ],
+      search: ''
 
-      }
-    },
-    computed: {
-      curPageContents: function () {
-        return this.publishedCurrentPage != this.commentNum / 5 ?
+    }
+  },
+  computed: {
+    curPageContents: function () {
+      return this.publishedCurrentPage != this.commentNum / 5 ?
           this.comments.slice(5 * this.publishedCurrentPage - 5, 5 * this.publishedCurrentPage) :
           this.comments.slice(5 * this.publishedCurrentPage - 5, this.commentNum)
-      }
     }
   }
+}
 </script>
 
 <style scoped>
@@ -733,15 +785,7 @@
     font-weight: bold;
   }
 
-  .card .title:hover {
-    color: #63cbcb;
-    cursor: pointer;
-  }
 
-  .card .separator {
-    width: 2em;
-    height: 2em;
-  }
 
   .card-left {
     padding-top: 2rem;
