@@ -17,7 +17,7 @@
 
         <!--      介绍文字-->
         <div style="font-size: 2.5em; font-weight: 1; padding-top: 1rem"
-             class="dynamic-animation">
+              class="dynamic-animation">
           Paper knowledge graph analysis  <br>
           and display
         </div>
@@ -46,7 +46,7 @@
           color: #fcfcfc;
           box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
         "
-               class="dynamic-animation">
+          class="dynamic-animation">
             ILLUSTRATION <br>
             VEDIO
           </div>
@@ -160,7 +160,7 @@
      ">
 
       <div class="highlight-region"
-           :style="{'background-image': 'url(' + require('@/assets/home/line-below.svg') + ') '}">
+        :style="{'background-image': 'url(' + require('@/assets/home/line-below.svg') + ') '}">
         <div style="overflow: hidden; width: 80%;">
           <!--两行三列-->
           <el-row style="width: 100%">
@@ -355,32 +355,15 @@
 </template>
 
 <script>
-// @ is an alias to /src
-import { videoPlayer } from "vue-video-player";
-import "video.js/dist/video-js.css";
-import { getComment, sendComment } from '@/api/board';
+  // @ is an alias to /src
+  import { videoPlayer } from "vue-video-player";
+  import "video.js/dist/video-js.css";
+  import { getComment, sendComment } from '@/api/board';
 
-export default {
-  name: 'home',
-  components: {
-    videoPlayer,
-  },
-  created() {
-
-    getComment().then(response => {
-      this.comments = eval(response.data)
-      //按时间倒序排列
-      this.commentNum = this.comments.length
-    }).catch(() => {
-      this.$message.error("There's something wrong with your network.");
-    })
-
-    this.commentNum = this.comments.length;
-  },
-  methods: {
-    current_change(publishedCurrentPage) {
-      this.publishedCurrentPage = publishedCurrentPage
-      console.log(this.publishedCurrentPage)
+  export default {
+    name: 'home',
+    components: {
+      videoPlayer,
     },
     jumpToAdmin() {
       this.$router.push({ path: "/admin" });
@@ -507,26 +490,95 @@ export default {
 
     },
 
-
-
-  },
-  data() {
-    return {
-      downloadDatabaseVisible: false,
-      firstname: '',
-      lastname: '',
-      content: '',
-      publishedCurrentPage: 1,
-      playerOptions: {
-        playbackRates: [0.5, 1.0, 2.0], //播放速度
-        autoplay: false, //如果true,浏览器准备好时开始回放。
-        muted: false, // 默认情况下将会消除任何音频。
-        loop: true, // 导致视频一结束就重新开始。
-        preload: "auto", // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
-        language: "zh-CN",
-        aspectRatio: "16:9", // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
-        fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
-        sources: [
+    },
+    data() {
+      return {
+        downloadDatabaseVisible: false,
+        firstname: '',
+        lastname: '',
+        content: '',
+        publishedCurrentPage: 1,
+        playerOptions: {
+          playbackRates: [0.5, 1.0, 2.0], //播放速度
+          autoplay: false, //如果true,浏览器准备好时开始回放。
+          muted: false, // 默认情况下将会消除任何音频。
+          loop: true, // 导致视频一结束就重新开始。
+          preload: "auto", // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
+          language: "zh-CN",
+          aspectRatio: "16:9", // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
+          fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
+          sources: [
+            {
+              type: "video/mp4",
+              src: require("../assets/illustration.mp4"), //视频url地址
+            },
+          ],
+          poster: require("../assets/illustrationHeader.png"), //你的封面地址
+          // width: document.documentElement.clientWidth,
+          notSupportedMessage: "The video cannot be wathed now. Please wait.", //允许覆盖Video.js无法播放媒体源时显示的默认信息。
+          controlBar: {
+            timeDivider: true,
+            durationDisplay: true,
+            remainingTimeDisplay: false,
+            fullscreenToggle: true, //全屏按钮
+          },
+        },
+        introduction: [
+          {
+            //highlight:'强调',
+            title: 'Powerful Data Support',
+            description: 'We store the cleaned dataset in a high-performance neo-4j graph database with efficient and fast query support.'
+          },
+          {
+            //highlight:'强调',
+            title: 'Visualization data flow',
+            description: 'Our team implemented an end-to-end visual data flow, supporting the reading and importing of datasets and performing them on the front end.'
+          }, {
+            //highlight:'强调',
+            title: 'Complete functional query',
+            description: 'We completed the basic functional query and kept the query speed within the desired range, and the back-end used .NET to make a big query for the database.'
+          }, {
+            //highlight:'强调',
+            title: 'Extra Credit: Storage System',
+            description: 'We have improved the performance of the query through caching and other means, and the specific performance optimization means are described in detail in the documentation.'
+          }, {
+            //highlight:'强调',
+            title: 'Extra Credit:Visualization',
+            description: 'Our team has optimized and rewritten the presentation framework of the Knowledge Graph to improve the performance of the front-end, so that users can better view the search results.'
+          }
+        ],
+        commentNum: 1,
+        comments: [
+          {
+            firstname: 'Mingjie',
+            lastname: "Wang",
+            time: '2021-09-02 22:35',
+            content: "It is really a great website, and I'm totoally obsseseed with it!"
+          },
+          {
+            firstname: 'Jacky',
+            lastname: "Li",
+            time: '2021-09-03 10:20',
+            content: "Your website definitely helps me a lot since I've been finding such a web for a long time."
+          },
+          {
+            firstname: 'Ziniu',
+            lastname: 'Niu',
+            time: '2021-09-04 01:44',
+            content: 'IGEM HP GAME IS SO FUCKKKKKKKKKKING FUNNY!!'
+          },
+          {
+            firstname: 'Liyou',
+            lastname: 'Wang',
+            time: '2021-09-04 11:20',
+            content: 'A great website but will be better with some more beautiful picture.'
+          },
+          {
+            firstname: '正一',
+            lastname: '卓',
+            time: '2021-09-04 19:21',
+            content: '这个网站真的很赞，我真的哭死'
+          },
           {
             type: "video/mp4",
             src: require("../assets/illustration.mp4"), //视频url地址
@@ -656,161 +708,153 @@ export default {
 </script>
 
 <style scoped>
-@import "../assets/css/font.css";
-@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro:200,900');
+  @import "../assets/css/font.css";
+  @import url('https://fonts.googleapis.com/css?family=Source+Code+Pro:200,900');
 
-.el-icon-star-on:before {
-  font-size: 1.5em !important;
-}
+  .el-icon-star-on:before {
+    font-size: 1.5em !important;
+  }
 
-.home {
-  font-family: Futura;
-}
+  .home {
+    font-family: Futura;
+  }
 
-.bigFontSize {
-  font-size: 10px;
-  color: #999;
-  padding: 6px 6px;
-  margin: 1px;
-  word-wrap: break-word;
-  word-break: normal;
-}
+  .bigFontSize {
+    font-size: 10px;
+    color: #999;
+    padding: 6px 6px;
+    margin: 1px;
+    word-wrap: break-word;
+    word-break: normal;
+  }
 
-.NameFontSize {
-  font-size: 22px;
-  padding: 1px 6px;
-  font-weight: bold;
-  text-align: left;
-  display: block;
-  margin-top: 10px;
-  margin-right: 10px;
-  flex: 1;
-}
+  .NameFontSize {
+    font-size: 22px;
+    padding: 1px 6px;
+    font-weight: bold;
+    text-align: left;
+    display: block;
+    margin-top: 10px;
+    margin-right: 10px;
+    flex: 1;
+  }
 
-.commentSize {
-  font-size: 18px;
-  color: rgb(2, 0, 0);
-  padding: 6px 6px;
-  display: block;
-  margin: 1px;
-  text-align: left;
-  word-wrap: break-word;
-  word-break: normal;
-}
+  .commentSize {
+    font-size: 18px;
+    color: rgb(2, 0, 0);
+    padding: 6px 6px;
+    display: block;
+    margin: 1px;
+    text-align: left;
+    word-wrap: break-word;
+    word-break: normal;
+  }
 
-#commentNumText {
-  display: inline-block;
-  font-size: 1.2em;
-}
+  #commentNumText {
+    display: inline-block;
+    font-size: 1.2em;
+  }
 
-#myIcon {
-  display: inline-block;
-  margin-right: 10px;
-  color: #0f68ba;
-  font-size: 1.2em;
-}
+  #myIcon {
+    display: inline-block;
+    margin-right: 10px;
+    color: #0f68ba;
+    font-size: 1.2em;
+  }
 
-.banner {
-  background-image: linear-gradient(45deg, #64cccc 0%, #64cccc 25%, #137bfc 25%);
-  color: #fcfcfc;
-  font-weight: normal;
-  padding: 1rem 0 1rem 0;
-}
+  .banner {
+    background-image: linear-gradient(45deg, #64cccc 0%, #64cccc 25%, #137bfc 25%);
+    color: #fcfcfc;
+    font-weight: normal;
+    padding: 1rem 0 1rem 0;
+  }
 
-.sectors {
-  background: #2c342c;
-  color: #fcfcfc;
-  padding-bottom: 4rem;
-}
+  .sectors {
+    background: #2c342c;
+    color: #fcfcfc;
+    padding-bottom: 4rem;
+  }
 
-.sectors .card {
-  margin: 5rem 0 0 8rem;
-  display: inline-flex;
-}
+  .sectors .card {
+    margin: 5rem 0 0 8rem;
+    display: inline-flex;
+  }
 
-.card .title {
-  font-size: 2em;
-  font-weight: bold;
-}
-
-.card .title:hover {
-  color: #63cbcb;
-  cursor: pointer;
-}
-
-.card .separator {
-  width: 2em;
-  height: 2em;
-}
-
-.card-left {
-  padding-top: 2rem;
-  text-align: left;
-  width: 50%;
-}
-
-.card-right {
-  width: 60%;
-}
-
-.card-right img {
-  max-width: 60%;
-}
-
-.highlight-region {
-  padding: 5rem 0 7rem 10rem;
-  background-repeat: no-repeat;
-  background-position: top;
-  background-size: auto;
-}
-
-.odd-highlight {
-  text-align: left;
-  margin: 1rem;
-  padding: 5px 1rem 1.5rem 1rem;
-  background-image: linear-gradient(135deg, #147bfc 0%, #147bfc 3%, #2b332b8c 3%);
-  color: #fcfcfc;
-  backdrop-filter: blur(15px);
-}
-
-.even-highlight {
-  text-align: left;
-  margin: 1rem;
-  padding: 5px 1rem 1.5rem 1rem;
-  background-image: linear-gradient(135deg, #2b332b 0%, #2b332b 3%, #147bfc4a 3%);
-  color: #2c3e50;
-  backdrop-filter: blur(15px);
-  font-weight: 5;
-}
+  .card .title {
+    font-size: 2em;
+    font-weight: bold;
+  }
 
 
-.comment-board {
-  column-count: 3;
-  background: white;
-  padding: 5rem 2rem 5rem 2rem;
-  display: flex;
-}
 
-.comment {
-  text-align: left;
-  margin: 0 2rem 0 2rem;
-}
+  .card-left {
+    padding-top: 2rem;
+    text-align: left;
+    width: 50%;
+  }
 
-.logo-bar {
-  display: inline-flex;
-  margin: 1rem 0 1rem 0;
-}
+  .card-right {
+    width: 60%;
+  }
 
-.logo-bar img {
-  height: 2rem;
-  padding: 0 2rem 0 2rem;
-}
+  .card-right img {
+    max-width: 60%;
+  }
 
-.el-button:hover {
-  background: #1c7cfc;
-  color: #fcfcfc;
-  border-color: #2c342c;
-}
+  .highlight-region {
+    padding: 5rem 0 7rem 10rem;
+    background-repeat: no-repeat;
+    background-position: top;
+    background-size: auto;
+  }
+
+  .odd-highlight {
+    text-align: left;
+    margin: 1rem;
+    padding: 5px 1rem 1.5rem 1rem;
+    background-image: linear-gradient(135deg, #147bfc 0%, #147bfc 3%, #2b332b8c 3%);
+    color: #fcfcfc;
+    backdrop-filter: blur(15px);
+  }
+
+  .even-highlight {
+    text-align: left;
+    margin: 1rem;
+    padding: 5px 1rem 1.5rem 1rem;
+    background-image: linear-gradient(135deg, #2b332b 0%, #2b332b 3%, #147bfc4a 3%);
+    color: #2c3e50;
+    backdrop-filter: blur(15px);
+    font-weight: 5;
+  }
+
+
+  .comment-board {
+    column-count: 3;
+    background: white;
+    padding: 5rem 2rem 5rem 2rem;
+    display: flex;
+  }
+
+  .comment {
+    text-align: left;
+    margin: 0 2rem 0 2rem;
+  }
+
+  .logo-bar {
+    display: inline-flex;
+    margin: 1rem 0 1rem 0;
+  }
+
+  .logo-bar img {
+    height: 2rem;
+    padding: 0 2rem 0 2rem;
+  }
+
+  .el-button:hover {
+    background: #1c7cfc;
+    color: #fcfcfc;
+    border-color: #2c342c;
+  }
 
 
 
@@ -821,10 +865,10 @@ export default {
   transition-property:  transform;
 }
 
-.dynamic-animation:hover,.dynamic-animation:focus,.dynamic-animation:active {
-  position: relative;
-  transform: scale(1.1);
-}
+  .dynamic-animation:hover,.dynamic-animation:focus,.dynamic-animation:active {
+    position: relative;
+    transform: scale(1.1);
+  }
 
 
 
