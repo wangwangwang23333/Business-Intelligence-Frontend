@@ -365,7 +365,8 @@
     components: {
       videoPlayer,
     },
-    jumpToAdmin() {
+    methods:{
+      jumpToAdmin() {
       this.$router.push({ path: "/admin" });
     },
     seeVideo() {
@@ -488,6 +489,7 @@
     downloadAllFiles(){
       window.open('files/database.zip')
 
+    },
     },
 
     data() {
