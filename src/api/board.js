@@ -21,7 +21,7 @@ export function sendComment(data) {
     */
     let param= JSON.stringify(data)
     return request({
-        url:'/comment/add',
+        url:'/Comments',
         method:'post',
         data: param
     })

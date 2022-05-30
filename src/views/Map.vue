@@ -209,16 +209,15 @@ export default {
       let datetime = new Date().Format("yyyy-MM-dd hh:mm")
 
       let param = {
-        firstname: this.firstname,
-        lastname: this.lastname,
-        time: datetime,
-        content: this.content
+        firstName: this.firstname,
+        lastName: this.lastname,
+        commentTime: datetime,
+        commentContent: this.content
       }
 
       //发送api请求
       sendComment(param).then(response => {
         response;
-
         //提醒添加成功
         this.$message({
           message: 'You have successfully commented!!',

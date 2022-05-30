@@ -377,129 +377,134 @@
     },
     methods:{
       jumpToAdmin() {
-      this.$router.push({ path: "/admin" });
-    },
-    seeVideo() {
-      this.dialogVisible = true;
-    },
-    handleClose() {
-      this.dialogVisible = false;
-    },
-    jumpTo(index) {
-      if (index == 0) {
-        // 直接下载数据库
-        //alert("正在下载数据库中")
-        this.downloadDatabaseVisible = true;
-      } else if (index == 1) {
-        this.$router.push({ path: "/finder" });
-      } else {
-        this.$router.push({ path: "/map" });
-      }
-    },
-    //发送留言
-    addComment() {
-      //判断是否输入了FirstName
-      if (this.firstname.length == 0) {
-        this.$message({
-          message: 'Please input your first name!',
-          type: 'warning'
-        });
-        return;
-      }
-      if (this.firstname.length > 10) {
-        this.$message({
-          message: 'Your first name should not be longer than 10 words!',
-          type: 'warning'
-        });
-        return;
-      }
-      if (this.lastname.length == 0) {
-        this.$message({
-          message: 'Please input your last name!',
-          type: 'warning'
-        });
-        return;
-      }
-      if (this.lastname.length > 10) {
-        this.$message({
-          message: 'Your last name should not be longer than 10 words!',
-          type: 'warning'
-        });
-        return;
-      }
-      if (this.content == 0) {
-        this.$message({
-          message: 'The content should not be empty!',
-          type: 'warning'
-        });
-        return;
-      }
-      //发送api请求
-      Date.prototype.Format = function (fmt) { // author: meizz
-        var o = {
-          "M+": this.getMonth() + 1, // 月份
-          "d+": this.getDate(), // 日
-          "h+": this.getHours(), // 小时
-          "m+": this.getMinutes(), // 分
-          "s+": this.getSeconds(), // 秒
-          "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
-          "S": this.getMilliseconds() // 毫秒
-        };
-        if (/(y+)/.test(fmt))
-          fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
-        for (var k in o)
-          if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
-        return fmt;
-      }
-      let datetime = new Date().Format("yyyy-MM-dd hh:mm")
+        this.$router.push({ path: "/admin" });
+      },
+      seeVideo() {
+        this.dialogVisible = true;
+      },
+      handleClose() {
+        this.dialogVisible = false;
+      },
+      jumpTo(index) {
+        if (index == 0) {
+          // 直接下载数据库
+          //alert("正在下载数据库中")
+          this.downloadDatabaseVisible = true;
+        } else if (index == 1) {
+          this.$router.push({ path: "/finder" });
+        } else {
+          this.$router.push({ path: "/map" });
+        }
+      },
+      //发送留言
+      addComment() {
+        //判断是否输入了FirstName
+        if (this.firstname.length == 0) {
+          this.$message({
+            message: 'Please input your first name!',
+            type: 'warning'
+          });
+          return;
+        }
+        if (this.firstname.length > 10) {
+          this.$message({
+            message: 'Your first name should not be longer than 10 words!',
+            type: 'warning'
+          });
+          return;
+        }
+        if (this.lastname.length == 0) {
+          this.$message({
+            message: 'Please input your last name!',
+            type: 'warning'
+          });
+          return;
+        }
+        if (this.lastname.length > 10) {
+          this.$message({
+            message: 'Your last name should not be longer than 10 words!',
+            type: 'warning'
+          });
+          return;
+        }
+        if (this.content == 0) {
+          this.$message({
+            message: 'The content should not be empty!',
+            type: 'warning'
+          });
+          return;
+        }
+        //发送api请求
+        Date.prototype.Format = function (fmt) { // author: meizz
+          var o = {
+            "M+": this.getMonth() + 1, // 月份
+            "d+": this.getDate(), // 日
+            "h+": this.getHours(), // 小时
+            "m+": this.getMinutes(), // 分
+            "s+": this.getSeconds(), // 秒
+            "q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+            "S": this.getMilliseconds() // 毫秒
+          };
+          if (/(y+)/.test(fmt))
+            fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+          for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+          return fmt;
+        }
+        let datetime = new Date().Format("yyyy-MM-dd hh:mm")
 
-      let param = {
-        firstname: this.firstname,
-        lastname: this.lastname,
-        time: datetime,
-        content: this.content
-      }
+        let param = {
+          firstName: this.firstname,
+          lastName: this.lastname,
+          commentTime: datetime,
+          commentContent: this.content
+        }
 
-      //发送api请求
-      sendComment(param).then(response => {
-        response;
+        //发送api请求
+        sendComment(param).then(response => {
+          response;
 
-        //自己的数据添加
-        this.comments.splice(0, 0, param)
-        this.commentNum += 1
+          //自己的数据添加
+          this.comments.splice(0, 0, param)
+          this.commentNum += 1
 
-        //提醒添加成功
-        this.$message({
-          message: 'You have successfully commented!!',
-          type: 'success'
-        });
+          //提醒添加成功
+          this.$message({
+            message: 'You have successfully commented!!',
+            type: 'success'
+          });
 
-        //清空内容
-        this.firstname = ''
-        this.lastname = ''
-        this.content = ''
+          //清空内容
+          this.firstname = ''
+          this.lastname = ''
+          this.content = ''
 
-        //跳转到评论区
-        this.$refs["commentBoard"].scrollIntoView(true);
+          //跳转到评论区
+          this.$refs["commentBoard"].scrollIntoView(true);
 
-      }).catch(() => {
-        this.$message.error("There's something wrong with your network.");
-      })
-    },
-    gotoStart() {
-      this.$refs["start"].scrollIntoView(true);
-    },
+        }).catch((err) => {
+          console.log(err);
+          this.$message.error("There's something wrong with your network.");
+        })
+      },
+      gotoStart() {
+        this.$refs["start"].scrollIntoView(true);
+      },
 
-    handleDownload(index, row) {
-      //console.log(index, row.table);
+      handleDownload(index, row) {
+        //console.log(index, row.table);
 
-      window.open('files/database/'+row.table+'.csv')
-    },
+        window.open('files/database/'+row.table+'.csv')
+      },
 
-    downloadAllFiles(){
-      window.open('files/database.zip')
+      downloadAllFiles(){
+        window.open('files/database.zip')
 
-    },
+      },
+
+      current_change(publishedCurrentPage) {
+        this.publishedCurrentPage = publishedCurrentPage;
+      },
     },
 
     data() {
@@ -573,40 +578,40 @@
       commentNum: 1,
       comments: [
         {
-          firstname: 'Mingjie',
-          lastname: "Wang",
-          time: '2021-09-02 22:35',
-          content: "It is really a great website, and I'm totoally obsseseed with it!"
+          firstName: 'Mingjie',
+          lastName: "Wang",
+          commentTime: '2021-09-02 22:35',
+          commentContent: "It is really a great website, and I'm totoally obsseseed with it!"
         },
         {
-          firstname: 'Jacky',
-          lastname: "Li",
-          time: '2021-09-03 10:20',
-          content: "Your website definitely helps me a lot since I've been finding such a web for a long time."
+          firstName: 'Jacky',
+          lastName: "Li",
+          commentTime: '2021-09-03 10:20',
+          commentContent: "Your website definitely helps me a lot since I've been finding such a web for a long time."
         },
         {
-          firstname: 'Ziniu',
-          lastname: 'Niu',
-          time: '2021-09-04 01:44',
-          content: 'IGEM HP GAME IS SO FUCKKKKKKKKKKING FUNNY!!'
+          firstName: 'Ziniu',
+          lastName: 'Niu',
+          commentTime: '2021-09-04 01:44',
+          commentContent: 'Your graph neo4j IS SO FUCKKKKKKKKKKING FUNNY!!'
         },
         {
-          firstname: 'Liyou',
-          lastname: 'Wang',
-          time: '2021-09-04 11:20',
-          content: 'A great website but will be better with some more beautiful picture.'
+          firstName: 'Liyou',
+          lastName: 'Wang',
+          commentTime: '2021-09-04 11:20',
+          commentContent: 'A great website but will be better with some more beautiful picture.'
         },
         {
-          firstname: '正一',
-          lastname: '卓',
-          time: '2021-09-04 19:21',
-          content: '这个网站真的很赞，我真的哭死'
+          firstName: '三丰',
+          lastName: '张',
+          commentTime: '2021-09-04 19:21',
+          commentContent: '这个网站真的很赞，我真的哭死'
         },
         {
-          firstname: 'Zihan',
-          lastname: 'Zhang',
-          time: '2021-09-05 10:37',
-          content: 'Good website which helps me in an exam'
+          firstName: 'Zihan',
+          lastName: 'Zhang',
+          commentTime: '2021-09-05 10:37',
+          commentContent: 'Good website which helps me in an exam'
         },
       ],
       tableData: [
