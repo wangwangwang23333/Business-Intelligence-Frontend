@@ -10,7 +10,7 @@ export function getComment() {
     返回所有的留言
     */
     return request({
-      url: '/comment/getall',
+      url: '/Comments',
       method: 'get'
     })
   }

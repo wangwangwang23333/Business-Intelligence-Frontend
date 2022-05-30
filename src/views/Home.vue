@@ -206,13 +206,13 @@
         <div v-for="i in [0, 1]" :key="i" class="comment">
           <div v-if="curPageContents[i]">
             <p>
-              {{ curPageContents[i].content }}
+              {{ curPageContents[i].commentContent }}
             </p>
 
             <div style="color: #757575">
-              <span> {{ curPageContents[i].firstname }} </span>
-              <span> {{ curPageContents[i].lastname }}</span> <br>
-              <span> {{ curPageContents[i].time }} </span>
+              <span> {{ curPageContents[i].firstName }} </span>
+              <span> {{ curPageContents[i].lastName }}</span> <br>
+              <span> {{ curPageContents[i].commentTime }} </span>
             </div>
             <el-divider></el-divider>
           </div>
@@ -223,13 +223,13 @@
         <div v-for="i in [2, 3]" :key="i" class="comment">
           <div v-if="curPageContents[i]">
             <p>
-              {{ curPageContents[i].content }}
+              {{ curPageContents[i].commentContent }}
             </p>
 
             <div style="color: #757575">
-              <span> {{ curPageContents[i].firstname }} </span>
-              <span> {{ curPageContents[i].lastname }}</span> <br>
-              <span> {{ curPageContents[i].time }} </span>
+              <span> {{ curPageContents[i].firstName }} </span>
+              <span> {{ curPageContents[i].lastName }}</span> <br>
+              <span> {{ curPageContents[i].commentTime }} </span>
             </div>
             <el-divider></el-divider>
           </div>
@@ -240,13 +240,13 @@
         <div v-for="i in [4]" :key="i" class="comment">
           <div v-if="curPageContents[i]">
             <p>
-              {{ curPageContents[i].content }}
+              {{ curPageContents[i].commentContent }}
             </p>
 
             <div style="color: #757575">
-              <span> {{ curPageContents[i].firstname }} </span>
-              <span> {{ curPageContents[i].lastname }}</span> <br>
-              <span> {{ curPageContents[i].time }} </span>
+              <span> {{ curPageContents[i].firstName }} </span>
+              <span> {{ curPageContents[i].lastName }}</span> <br>
+              <span> {{ curPageContents[i].commentTime }} </span>
             </div>
             <el-divider></el-divider>
           </div>
@@ -364,6 +364,16 @@
     name: 'home',
     components: {
       videoPlayer,
+    },
+    created(){
+      getComment().then(response => {
+        this.comments = eval(response.data)
+        //按时间倒序排列
+        this.commentNum = this.comments.length
+      }).catch(() => {
+        this.$message.error("There's something wrong with your network.");
+      })
+      this.commentNum = this.comments.length;
     },
     methods:{
       jumpToAdmin() {
