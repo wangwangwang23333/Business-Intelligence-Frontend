@@ -40,10 +40,8 @@ service.interceptors.response.use(
      * You can also judge the status by HTTP Status Code
      */
     response => {
-      
       // if the custom code is not 200, it is judged as an error.
-      if (response.status != 200) {
-
+      if (Math.round(response.status/100) != 2) {
         return Promise.reject(new Error(response.statusText || 'Error'))
       } else {
         return response

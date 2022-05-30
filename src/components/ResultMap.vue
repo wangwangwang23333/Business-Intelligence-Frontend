@@ -93,7 +93,7 @@
               class="input-with-select"
               style="width: 90%;margin-left: 5%;"
               v-model="searchText"
-              :fetch-suggestions="querySearch"
+              :fetch-suggestions="querySearch1"
               placeholder="Writer name / Research topic."
           >
             <el-select 
@@ -206,11 +206,9 @@
 </template>
 <script>
 import Vis from "vis";
-import {findBacteriaByKey, findPhageByKey, findAllSpeciesByKey} from '@/api/finder';
+import {findWriterSuggestion} from '@/api/finder';
 import {findAllMap, findAllBug} from '@/api/map';
-import {findSuggestion} from "../api/finder";
 
-'@/api/finder';
 
 export default {
   name: 'ResultMap',
@@ -225,6 +223,7 @@ export default {
 
       // 检索条件
       findCondition1: "1",
+      writerName2: "",
 
       // 关系筛选中的另一个作者
       writerName: '',
@@ -271,6 +270,14 @@ export default {
     onFindCondition1Change(value){
       if (this.value != "1") {
         this.isConnectionShow =false;
+      }
+    },
+    querySearch1(key, cb){
+      // 根据key进行远程检索
+      console.log(this.findCondition1);
+      if (this.findCondition1 == "1") {
+        // 作者姓名的远程获取
+
       }
     },
 
