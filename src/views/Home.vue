@@ -367,7 +367,7 @@
     },
     created(){
       getComment().then(response => {
-        this.comments = eval(response.data)
+        this.comments = eval(response.data).reverse();
         //按时间倒序排列
         this.commentNum = this.comments.length
       }).catch(() => {
