@@ -68,7 +68,6 @@
     </div>
 
     <el-row 
-    
     style="background: linear-gradient(to bottom, #536976, #292E49);" v-else>
       <el-col id="network_id_2" class="network"
       v-loading="loading"
@@ -79,7 +78,7 @@
             </el-col>
       <el-image 
       :src="require('@/assets/finderBlank.png')"
-      v-if="responseData.length == 0 && !loading"
+      v-if="!canvasShown && !loading"
       style="margin-left: -130%;margin-top:20%;width: 30%;"></el-image>
       
       <!--控制栏-->
@@ -89,42 +88,47 @@
           class="sub-title" style="line-height: 5vh;font-weight: bold;margin-left: 5%;margin-top: 3vh;">Searching
             Entity Condition
           </div>
-          <el-autocomplete
+          <div style="height: 60%;">
+            <el-autocomplete
               class="input-with-select"
               style="width: 90%;margin-left: 5%;"
               v-model="searchText"
               :fetch-suggestions="querySearch1"
-              placeholder="Writer name / Research topic."
-          >
-            <el-select 
-            v-model="findCondition1" 
-            @change="onFindCondition1Change"
-            slot="prepend" placeholder="Please choose">
-              <el-option label="Writer" value="1"></el-option>
-              <el-option label="Topic" value="2"></el-option>
-            </el-select>
-          </el-autocomplete>
-          <div style="font-size:x-large; 
-          cursor:pointer; 
-          margin-left: 50%;
-          color: #FFFFFF;
-          ">
-            <em :class="isConnectionShow ? 'el-icon-caret-top' : 'el-icon-caret-bottom'"
-            @click="openConnectionSearch"
-            ></em>
+              :highlight-first-item="true"
+              :placeholder="findCondition1 == '1'? 'Author name'
+              :'Research topic'"
+            >
+              <el-select 
+              v-model="findCondition1" 
+              @change="onFindCondition1Change"
+              slot="prepend" placeholder="Please choose">
+                <el-option label="Author" value="1"></el-option>
+                <el-option label="Topic" value="2"></el-option>
+              </el-select>
+            </el-autocomplete>
+            <div style="font-size:x-large; 
+            cursor:pointer; 
+            margin-left: 50%;
+            color: #FFFFFF;
+            ">
+              <em :class="isConnectionShow ? 'el-icon-caret-top' : 'el-icon-caret-bottom'"
+              @click="openConnectionSearch"
+              ></em>
+            </div>
+            <div>
+              <el-collapse-transition>
+                <div v-show="isConnectionShow">
+                  <el-autocomplete
+                    v-model="writerName2"
+                    :fetch-suggestions="querySearch2"
+                    placeholder="Input another author name."
+                    style="width: 90%;margin-left: 5%;"
+                  ></el-autocomplete>
+                </div>
+              </el-collapse-transition>
+            </div>
           </div>
-          <div>
-            <el-collapse-transition>
-              <div v-show="isConnectionShow">
-                <el-autocomplete
-                  v-model="writerName2"
-                  :fetch-suggestions="querySearch"
-                  placeholder="Input another writer name."
-                  style="width: 90%;margin-left: 5%;"
-                ></el-autocomplete>
-              </div>
-            </el-collapse-transition>
-          </div>
+          <el-button @click="searchQuery">search</el-button>
         </div>
       </el-col>
       
@@ -206,9 +210,11 @@
 </template>
 <script>
 import Vis from "vis";
-import {findWriterSuggestion} from '@/api/finder';
+import {findWriterSuggestion, findAreaSuggestion} from '@/api/finder';
 import {findAllMap, findAllBug} from '@/api/map';
-
+import {findAuthorPapers, findAuthorCooperateAuthors} from '@/api/author';
+import {findAreaAuthors} from '@/api/area';
+import 'font-awesome/css/font-awesome.css';
 
 export default {
   name: 'ResultMap',
@@ -218,12 +224,25 @@ export default {
   data() {
 
     return {
+      canvasShown: false,
+
       // 关系查询开启
       isConnectionShow: false,
 
       // 检索条件
       findCondition1: "1",
       writerName2: "",
+
+      // 远程搜索的第一个作者
+      remoteWriterList: [],
+
+      selectedAuthorIndex: "1",
+
+      // 远程搜索的领域
+      remoteAreaList:[],
+      
+      // 远程搜索的另一个作者
+      remoteAnotherAuthorList:[],
 
       // 关系筛选中的另一个作者
       writerName: '',
@@ -264,9 +283,369 @@ export default {
   created() {
     this.expandedMAPNode = new Set()
     this.nodeMap = new Map()
+    this.options = {
+      autoResize: true, //网络将自动检测其容器的大小调整，并相应地重绘自身
+      locale: "cn", //语言设置：工具栏显示中文
+      //设置语言
+      locales: {
+        cn: {
+          //工具栏中文翻译
+          edit: "编辑",
+          del: "删除当前节点或关系",
+          back: "返回",
+          addNode: "添加节点",
+          addEdge: "添加连线",
+          editNode: "编辑节点",
+          editEdge: "编辑连线",
+          addDescription: "点击空白处可添加节点",
+          edgeDescription: "点击某个节点拖拽连线可连接另一个节点",
+          editEdgeDescription: "可拖拽连线改变关系",
+          createEdgeError: "无法将边连接到集群",
+          deleteClusterError: "无法删除集群.",
+          editClusterError: "无法编辑群集'"
+        }
+      },
+
+      // 设置节点样式
+      nodes: {
+        shape: "image",
+        size: 15,
+        shadow:{
+          enabled: false,
+          color: 'rgba(0,0,0,0.5)',
+          size:10,
+          x:5,
+          y:5
+        },
+        font: {
+          //字体配置
+          size: 15,
+          color: "#FFFFFF",
+        },
+        color: {
+          border: "#f1e7ea", //节点边框颜色
+          background: "#97C2FC", //节点背景颜色
+          highlight: {
+            //节点选中时状态颜色
+            border: "#f1e7ea",
+            background: "#D2E5FF"
+          },
+          hover: {
+            //节点鼠标滑过时状态颜色
+            border: "#f1e7ea",
+            background: "#D2E5FF"
+          }
+        },
+        borderWidth: 3, //节点边框宽度，单位为px
+        borderWidthSelected: 5 //节点被选中时边框的宽度，单位为px
+      },
+      // 边线配置
+      edges: {
+        width: 3,
+        length: 300,
+        color: {
+          color: "#f1e7ea",
+          highlight: "#f1f7fa",
+          hover: "#f1f7fa",
+          inherit: "from",
+          opacity: 1.0
+        },
+        shadow: true,
+        smooth: {
+          //设置两个节点之前的连线的状态
+          enabled: true //默认是true，设置为false之后，两个节点之前的连线始终为直线，不会出现贝塞尔曲线
+        },
+        arrows: {to: true} //箭头指向to
+      },
+      //计算节点之前斥力，进行自动排列的属性
+      physics: {
+        enabled: true, //默认是true，设置为false后，节点将不会自动改变，拖动谁谁动。不影响其他的节点
+        barnesHut: {
+          gravitationalConstant: -4000,
+          centralGravity: 0.3,
+          springLength: 120,
+          springConstant: 0.04,
+          damping: 0.09,
+          avoidOverlap: 0
+        }
+      },
+      //用于所有用户与网络的交互。处理鼠标和触摸事件以及导航按钮和弹出窗口
+      interaction: {
+        dragNodes: true, //是否能拖动节点
+        dragView: true, //是否能拖动画布
+        hover: true, //鼠标移过后加粗该节点和连接线
+        multiselect: true, //按 ctrl 多选
+        selectable: true, //是否可以点击选择
+        selectConnectedEdges: true, //选择节点后是否显示连接线
+        hoverConnectedEdges: true, //鼠标滑动节点后是否显示连接线
+        zoomView: true //是否能缩放画布
+      },
+      //操作模块:包括 添加、删除、获取选中点、设置选中点、拖拽系列、点击等等
+      manipulation: {
+        enabled: false, //该属性表示可以编辑，出现编辑操作按钮
+        addNode: true,
+        addEdge: true,
+        editEdge: true,
+        deleteNode: true,
+        deleteEdge: true
+      },
+      layout: {
+        improvedLayout: false
+      }
+    };
   },
+  
   methods: {
+    searchQuery(){
+      this.container = document.getElementById("network_id_2");
+      if (this.isConnectionShow) {
+        // 双条件查询
+        this.cooperateAuthorsSearch();
+      } else if (this.findCondition1 == "1") {
+        // 作者实体查询
+        this.singleAuthorSearch();
+      } else {
+        // 领域实体查询
+        this.singleAreaSearch();
+      }
+    },
     
+    formatLongStr(content) {
+      return content.slice(0, 10) + 
+              (content.length > 10 ? "...": "")
+    },
+    
+    /**
+     * 单作者查询
+     * */
+    singleAuthorSearch(){
+      /*
+      此处进行选择作者的弹窗提醒
+      */
+      this.selectedAuthorIndex="1290846";
+
+      // 上一轮数据清空
+      this.nodesArray.splice(0, this.nodesArray.length);
+      this.edgesArray.splice(0, this.edgesArray.length);
+
+      // 核心作者结点
+      this.nodesArray.push({
+        // id
+        id: "a" + this.selectedAuthorIndex, 
+        // 作者名
+        label: this.searchText, 
+        color: {
+          background: '#f57797',
+          highlight: "#fbc7d4",
+          hover: "#fbc7d4"
+        },
+        icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+        image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+        
+      });
+
+      // 所有请求同时发出
+      Promise.all([
+        findAuthorPapers(this.selectedAuthorIndex),
+        findAuthorCooperateAuthors(this.selectedAuthorIndex)
+      ]).then(result => {
+        console.log(result);
+
+        /*处理论文数据*/
+        result[0].data.forEach((item, index)=>{
+          this.nodesArray.push({
+            id: 'p' + item.index, 
+            // title，只显示一部分信息
+            label:item.paper_title.slice(0, 10) + 
+              (item.paper_title.length > 10 ? "...": ""),
+            description: item,
+            color: {
+              background: '#f57797',
+              highlight: "#fbc7d4",
+              hover: "#fbc7d4"
+            },
+            icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/QQ%E6%88%AA%E5%9B%BE20220601191216.png'
+          });
+
+          // 结点和边相连
+          this.edgesArray.push({
+            from: "a" + this.selectedAuthorIndex,
+            to: 'p' + item.index,
+            label: "Write",
+          });
+        });
+
+        /*处理合作作者关系*/
+        result[1].data.forEach((item, index)=>{
+          this.nodesArray.push({
+            id: 'c' + item.index, 
+            // title，只显示一部分信息
+            label: item.name.slice(0, 10) + 
+              (item.name.length > 10 ? "...": ""),
+            description: item,
+            color: {
+              background: '#f57797',
+              highlight: "#fbc7d4",
+              hover: "#fbc7d4"
+            },
+            icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+          });
+
+          // 结点和边相连
+          this.edgesArray.push({
+            from: "a" + this.selectedAuthorIndex,
+            to: 'c' + item.index,
+            type: "bar",
+            arrows: {to: false},
+            label: "Cooperate",
+          });
+        });
+
+
+        // 最后配置
+        this.canvasShown = true;
+
+        // 网络初始化
+        this.network = 
+          new Vis.Network(this.container, {
+            nodes: this.nodesArray,
+            edges: this.edgesArray,
+          }, this.options);
+      }).catch(()=>{
+        this.$message.error("There's something wrong with your network.");
+      })
+
+
+      //image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/QQ%E6%88%AA%E5%9B%BE20220601191216.png',
+
+      // 获取所有相连的论文
+
+
+      
+
+    },
+
+    /**
+     * 单领域查询
+     * */
+    singleAreaSearch(){
+      // 当前所选择的领域
+      const searchArea = this.searchText;
+      // 上一轮数据清空
+      this.nodesArray.splice(0, this.nodesArray.length);
+      this.edgesArray.splice(0, this.edgesArray.length);
+      // 查询领域作者
+      findAreaAuthors(searchArea).then(response=>{
+        console.log(response);
+        if (response.data.length == 0) {
+          this.$message('No such area.');
+          return;
+        }
+        // 添加中心结点
+        this.nodesArray.push({
+          // id
+          id: searchArea, 
+          // 作者名
+          label: searchArea, 
+          color: {
+            background: '#f57797',
+            highlight: "#fbc7d4",
+            hover: "#fbc7d4"
+          },
+          icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+          image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+        });
+
+        
+
+        const authorSearchTask  = response.data.map(item => {
+          // 加入author结点
+          this.nodesArray.push({
+            // id
+            id: "a" + item.index, 
+            // 作者名
+            label: this.formatLongStr(item.name), 
+            color: {
+              background: '#f57797',
+              highlight: "#fbc7d4",
+              hover: "#fbc7d4"
+            },
+            icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+          });
+
+          // 添加中心结点到author的联系
+          this.edgesArray.push({
+            from: "a" + item.index,
+            to: searchArea,
+            label: "Search",
+          });
+
+          // 根据authorIndex查询
+          return findAuthorPapers(item.index);
+        });
+
+        // 论文数超过10的作者信息
+        let tooManyPaperAuthors = [];
+
+        Promise.all(authorSearchTask).then(result => {
+          console.log(result);
+          result.forEach((item, index)=>{
+            // 只展示该读者的前10篇论文
+            const paperList = item.data.slice(0,10);
+
+            paperList.forEach((paper) => {
+              // 绘制结点
+              this.nodesArray.push({
+                id: 'p' + paper.index, 
+                // title，只显示一部分信息
+                label:this.formatLongStr(paper.paper_title),
+                description: paper,
+                color: {
+                  background: '#f57797',
+                  highlight: "#fbc7d4",
+                  hover: "#fbc7d4"
+                },
+                icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+                image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/QQ%E6%88%AA%E5%9B%BE20220601191216.png'
+              });
+
+              // 结点和边相连
+              this.edgesArray.push({
+                from: "a" + response.data[index].index,
+                to: 'p' + paper.index,
+                label: "Write",
+              });
+            })
+          })
+
+          // 最后配置
+          this.canvasShown = true;
+
+          // 网络初始化
+          this.network = 
+            new Vis.Network(this.container, {
+              nodes: this.nodesArray,
+              edges: this.edgesArray,
+            }, this.options);
+        })
+        
+        
+      }).catch((err)=>{
+        console.log(err)
+        this.$message.error("There's something wrong with your network.");
+      })
+    },
+
+    /**
+     * 两个作者联合查询
+     **/
+    cooperateAuthorsSearch(){
+
+    },
+
     onFindCondition1Change(value){
       if (this.value != "1") {
         this.isConnectionShow =false;
@@ -274,11 +653,48 @@ export default {
     },
     querySearch1(key, cb){
       // 根据key进行远程检索
-      console.log(this.findCondition1);
+      if (key == "") {
+        key = "A";
+      }
       if (this.findCondition1 == "1") {
         // 作者姓名的远程获取
-
+        findWriterSuggestion(key).then(response => {
+          console.log(response);
+          this.remoteWriterList = response.data;
+          // 回调作者的名称
+          cb(response.data.map((item)=>{
+            return {"value": item.name, "label": item.name + " " + item.authorIndex};
+          }));
+        }).catch(error=>{
+          this.$message.error("There's something wrong with your network.");
+        })
+      } else if (this.findCondition1 == "2") {
+        // 领域的远程搜索
+        findAreaSuggestion(key).then(response => {
+          this.remoteAreaList = response.data;
+          cb(response.data.map((item)=>{
+            return {"value": item};
+          }));
+        }).catch(()=>{
+          this.$message.error("There's something wrong with your network.");
+        })
       }
+    },
+
+    querySearch2(key, cb) {
+      if (key == "") {
+        key = "A";
+      }
+      findWriterSuggestion(key).then(response => {
+        console.log(response);
+        this.remoteAnotherAuthorList = response.data;
+        // 回调作者的名称
+        cb(response.data.map((item)=>{
+          return {"value": item.name, "label": item.name + " " + item.authorIndex};
+        }));
+      }).catch(error=>{
+        this.$message.error("There's something wrong with your network.");
+      })
     },
 
     openConnectionSearch() {
@@ -296,6 +712,10 @@ export default {
       }
       this.isConnectionShow = true;
     },
+
+    // 展示图表
+
+
 
     downloadFinderData() {
       console.log(this.responseData)
