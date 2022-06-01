@@ -114,7 +114,7 @@
         <div style="width: 40%; text-align: left;">
           <div style="font-size: small">
             <b style="font-size: x-large; font-weight: 10">Contacts</b>
-            <p>If you have any feedback, please contact us</p>
+            <p>If you have any feedback, please contact us.</p>
 
             <b>EMAIL</b>
             <div>tj_software2021@163.com</div>

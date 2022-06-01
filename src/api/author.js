@@ -20,3 +20,14 @@ export function findAuthorCooperateAuthors(key) {
         }
     })
 }
+
+export function findCooperatePapers(key1, key2) {
+    return request({
+        url: '/cooperatePapers',
+        method: 'get',
+        params: {
+            "oneAuthorIndex": key1,
+            "anotherAuthorIndex": key2,
+        }
+    })
+}
