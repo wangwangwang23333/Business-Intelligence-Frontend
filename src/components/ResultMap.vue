@@ -132,7 +132,8 @@
         </div>
       </el-col>
       
-      <el-col :span="9" style="background: rgba(233,236,239,0.3)">
+      <el-col :span="9" style="background: rgba(233,236,239,0.3)"
+      v-show="false">
         <!--控制栏-->
         <div style="text-align: left;height: 80vh;">
           <div 
@@ -212,7 +213,8 @@
 import Vis from "vis";
 import {findWriterSuggestion, findAreaSuggestion} from '@/api/finder';
 import {findAllMap, findAllBug} from '@/api/map';
-import {findAuthorPapers, findAuthorCooperateAuthors} from '@/api/author';
+import {findAuthorPapers, findAuthorCooperateAuthors,
+  findCooperatePapers} from '@/api/author';
 import {findAreaAuthors} from '@/api/area';
 import 'font-awesome/css/font-awesome.css';
 
@@ -643,7 +645,99 @@ export default {
      * 两个作者联合查询
      **/
     cooperateAuthorsSearch(){
+      const authorIndex1 = "6";
+      const authorIndex2 = "195184";
 
+      if (authorIndex1 == authorIndex2) {
+        this.$message('You cannot choose two same authors!');
+        return;
+      }
+
+      // 上一轮数据清空
+      this.nodesArray.splice(0, this.nodesArray.length);
+      this.edgesArray.splice(0, this.edgesArray.length);
+
+      // 添加两个作者结点
+      this.nodesArray.push({
+        // id
+        id: "a" + authorIndex1, 
+        // 作者名
+        label: this.searchText, 
+        color: {
+          background: '#f57797',
+          highlight: "#fbc7d4",
+          hover: "#fbc7d4"
+        },
+        icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+        image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+      });
+      this.nodesArray.push({
+        // id
+        id: "a" + authorIndex2, 
+        // 作者名
+        label: this.querySearch2, 
+        color: {
+          background: '#f57797',
+          highlight: "#fbc7d4",
+          hover: "#fbc7d4"
+        },
+        icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+        image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+      });
+    
+      // 查询两个作者共同发表的论文
+      findCooperatePapers(authorIndex1, authorIndex2).then(response=>{
+        const cooperatePapers = response.data;
+        if (cooperatePapers.length == 0) {
+          this.$message('These 2 authors have no cooperate papers.');
+          return;
+        }
+
+        cooperatePapers.forEach(paper => {
+          // 绘制结点
+          this.nodesArray.push({
+            id: 'p' + paper.index, 
+            // title，只显示一部分信息
+            label:this.formatLongStr(paper.paper_title),
+            description: paper,
+            color: {
+              background: '#f57797',
+              highlight: "#fbc7d4",
+              hover: "#fbc7d4"
+            },
+            icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/QQ%E6%88%AA%E5%9B%BE20220601191216.png'
+          });
+
+          // 结点和边相连
+          this.edgesArray.push({
+            from: "a" + authorIndex1,
+            to: 'p' + paper.index,
+            label: "Write",
+          });
+          this.edgesArray.push({
+            from: "a" + authorIndex2,
+            to: 'p' + paper.index,
+            label: "Write",
+          });
+        })
+
+        // 绘制作者以及合作论文
+        this.canvasShown = true;
+
+        // 网络初始化
+        this.network = 
+          new Vis.Network(this.container, {
+            nodes: this.nodesArray,
+            edges: this.edgesArray,
+          }, this.options);
+
+        
+
+      }).catch((err)=>{
+        console.log(err)
+        this.$message.error("There's something wrong with your network.");
+      })
     },
 
     onFindCondition1Change(value){

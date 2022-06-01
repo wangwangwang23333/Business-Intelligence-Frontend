@@ -113,14 +113,14 @@
         <div style="width: 40%; text-align: left;">
           <div style="font-size: small">
             <b style="font-size: x-large; font-weight: 10">Contacts</b>
-            <p>If you have any feedback, please contact us</p>
+            <p>If you have any feedback, please contact us.</p>
 
             <b>EMAIL</b>
-            <div>tj_software2021@163.com</div>
+            <div>19921305202@163.com</div>
             <br>
 
             <b>ADDRESS</b>
-            <div>Tongji University, No.1239 siping Road, Yangpu District, Shanghai</div>
+            <div>Tongji University, No.4800 caoan Road, Jiading District, Shanghai</div>
             <br>
           </div>
         </div>

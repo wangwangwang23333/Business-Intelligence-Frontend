@@ -68,7 +68,7 @@
     <div style="margin-top: 5vh;">
         <br><br>
         <b style="font-size: xx-large;">CONTACTS</b>
-        <p style="color: white;">If you have any feedback, please contact us</p>
+        <p style="color: white;">If you have any feedback, please contact us.</p>
         <b>EMAIL</b>
         <p style="color: white;">tj_software2021@163.com</p>
         <b>ADDRESS</b>
