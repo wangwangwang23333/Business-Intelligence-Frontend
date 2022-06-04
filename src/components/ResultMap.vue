@@ -97,6 +97,8 @@
               :highlight-first-item="true"
               :placeholder="findCondition1 == '1'? 'Author name'
               :'Research topic'"
+              @change="onAuthor1Change"
+              @select="onAuthor1Change"
             >
               <el-select 
               v-model="findCondition1" 
@@ -123,12 +125,19 @@
                     :fetch-suggestions="querySearch2"
                     placeholder="Input another author name."
                     style="width: 90%;margin-left: 5%;"
+                    @change="onAuthor2Change"
+                    @select="onAuthor2Change"
                   ></el-autocomplete>
                 </div>
               </el-collapse-transition>
             </div>
           </div>
-          <el-button @click="searchQuery">search</el-button>
+          <el-button @click="searchQuery"
+          type="primary"
+          style="margin-left: 40%;"
+          :loading="loading || author1PossibleListLoading || author2PossibleListLoading"
+          plain icon="el-icon-search" round>
+          Search</el-button>
         </div>
       </el-col>
       
@@ -207,6 +216,86 @@
         </div>
       </el-col>
     </el-row>
+
+    <!--作者选择界面-->
+    <el-dialog
+    width="90%"
+    title="Choose the author you're finding"
+    :visible.sync="isChoosingAuthor"
+    :close-on-click-modal="false"
+    append-to-body>
+      <h4>There are {{chooseAuthorDialog.authorPossibleList.length}} authors named 
+        {{chooseAuthorDialog.authorName}}, please choose:</h4>
+      <!--表格-->
+      <el-table
+        :key="tableKey"
+        :data="chooseAuthorDialog.authorPossibleList"
+        element-loading-text="加载中"
+        fit
+        ref="authorSelectTable"
+        highlight-current-row
+        style="width: 100%"
+        :max-height="400"
+        @selection-change="handleAuthorSelectionChange"
+      >
+        <el-table-column
+          type="selection"
+          width="30">
+        </el-table-column>
+        <el-table-column align="center" label="Department">
+          <template slot-scope="scope">
+            <div v-if="scope.row.authorDepartments.length != 0">
+              <el-tag type="primary" 
+              v-for="(i,index) in scope.row.authorDepartments" 
+              :key="index" effect="dark"
+              :color="labelColor[index % 3]" :hit="true"
+              >
+              {{i}}
+            </el-tag>
+            </div>
+            <span v-else>No data</span>
+
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="Article">
+          <template slot-scope="scope">
+            <span v-if="scope.row.articleTitles != ''">
+              <div v-for="(i,index) in scope.row.articleTitles"
+              :key="index">
+                ▲ {{formatLongStr(i, 50)}}
+              </div>
+            </span>
+            <span v-else>No data</span>
+          </template>
+        </el-table-column>
+        <el-table-column align="center" label="Areas">
+          <template slot-scope="scope">
+            <div v-if="scope.row.areas.length != 0">
+              <el-tag type="primary" 
+              v-for="(i,index) in scope.row.areas" 
+              :key="index" effect="dark"
+              :color="labelColor[index % 3]" :hit="true"
+              >
+              {{formatLongStr(i, 20)}}
+            </el-tag>
+            </div>
+            <span v-else>No data</span>
+          </template>
+        </el-table-column>
+        
+      </el-table>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button
+          type="primary"
+          @click="enterAuthor()"
+          class="table_href"
+          title="OK"
+          :disabled="chooseAuthorDialog.selectedAuthor == ''"
+          >OK</el-button
+        >
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -214,7 +303,8 @@ import Vis from "vis";
 import {findWriterSuggestion, findAreaSuggestion} from '@/api/finder';
 import {findAllMap, findAllBug} from '@/api/map';
 import {findAuthorPapers, findAuthorCooperateAuthors,
-  findCooperatePapers} from '@/api/author';
+  findCooperatePapers, getBriefAuthorsDescription,
+  getAuthorDepartment} from '@/api/author';
 import {findAreaAuthors} from '@/api/area';
 import 'font-awesome/css/font-awesome.css';
 
@@ -228,6 +318,17 @@ export default {
     return {
       canvasShown: false,
 
+      isSelectedFunctionInside: false,
+
+      // 正在选择某一个具体的读者
+      isChoosingAuthor: false,
+
+      chooseAuthorDialog:{
+        authorName: '',
+        authorPossibleList: [],
+        selectedAuthor:'',
+      },
+
       // 关系查询开启
       isConnectionShow: false,
 
@@ -238,6 +339,13 @@ export default {
       // 远程搜索的第一个作者
       remoteWriterList: [],
 
+      // 读者1的可能信息
+      author1PossibleList: [],
+      // 作者1可能列表加载
+      author1PossibleListLoading: false,
+      // 最终author1的index
+      author1Index: "",
+
       selectedAuthorIndex: "1",
 
       // 远程搜索的领域
@@ -246,9 +354,17 @@ export default {
       // 远程搜索的另一个作者
       remoteAnotherAuthorList:[],
 
+      // 读者2的可能信息
+      author2PossibleList:[],
+      author2PossibleListLoading: false,
+      // 最终author2的index
+      author2Index: "",
+
       // 关系筛选中的另一个作者
       writerName: '',
 
+
+      labelColor:["#77C9D4","#57BC90","#015249"],
       //检索条件
       loading:false,
       selectedItems:false,
@@ -398,8 +514,149 @@ export default {
   },
   
   methods: {
+
+    enterAuthor(){
+      if (this.chooseAuthorDialog.selectedAuthor == "") {
+        this.$message("Please choose an author!");
+        return;
+      }
+      if (this.author1Index == "") {
+        // 当前为作者1的选择环节
+        this.author1Index = this.chooseAuthorDialog.selectedAuthor.authorIndex;
+        
+        // 确认是否需要进入作者2的选择环节
+        if (this.isConnectionShow) {
+          this.chooseAuthorDialog.authorName = this.writerName2;
+          this.chooseAuthorDialog.authorPossibleList = this.author2PossibleList;
+          this.chooseAuthorDialog.selectedAuthor = "";
+
+          // 表单清空
+          this.isSelectedFunctionInside = false;
+          this.$refs.authorSelectTable.clearSelection();
+        } else {
+          // 开始搜索
+          this.isChoosingAuthor = false;
+          this.getSearchData();
+        }
+      } else {
+        this.author2Index = this.chooseAuthorDialog.selectedAuthor.authorIndex;
+
+        // 开始搜索
+        this.isChoosingAuthor = false;
+        this.getSearchData();
+      }
+    },
+
+    // 清空上一轮的数据
+    clearData(){
+      this.author1Index = "";
+      this.author2Index = "";
+      this.chooseAuthorDialog = {
+        authorName: '',
+        authorPossibleList: [],
+        selectedAuthor:'',
+      };
+      this.isSelectedFunctionInside = false;
+      this.$refs.authorSelectTable.clearSelection();
+    },
+
+    handleAuthorSelectionChange(val){
+      if (this.isSelectedFunctionInside) {
+        return;
+      }
+      this.isSelectedFunctionInside = true;
+      this.$refs.authorSelectTable.clearSelection();
+      if (val.length >= 1) {
+        // 保留最后一个
+        val = val[val.length - 1];
+        this.$refs.authorSelectTable.toggleRowSelection(val);
+        this.chooseAuthorDialog.selectedAuthor = val;
+      } else {
+        this.chooseAuthorDialog.selectedAuthor = "";
+      }
+      this.isSelectedFunctionInside = false;
+    },
+
+    onAuthor1Change(value){
+      // 当作者1被改变时
+      this.author1Index = "";
+      this.author1PossibleListLoading = true;
+      if (typeof value != 'string') {
+          value = value.value;
+      }
+      if (value == "") {
+        this.author1PossibleList = [];
+        this.author1PossibleListLoading = false;
+        return;
+      }
+      getBriefAuthorsDescription(value).then(response=>{
+        this.author1PossibleList = response.data;
+      }).catch(error=>{
+        this.$message.error("There's something wrong with your network.");
+      }).finally(()=>{
+        this.author1PossibleListLoading = false;
+      })
+    },
+
+    onAuthor2Change(value) {
+      // 当作者2被改变时
+      this.author2Index = "";
+      this.author2PossibleListLoading = true;
+      if (typeof value != 'string') {
+          value = value.value;
+      }
+      if (value == "") {
+        this.author2PossibleList = [];
+        this.author2PossibleListLoading = false;
+        return;
+      }
+      getBriefAuthorsDescription(value).then(response=>{
+        this.author2PossibleList = response.data;
+      }).catch(error=>{
+        this.$message.error("There's something wrong with your network.");
+      }).finally(()=>{
+        this.author2PossibleListLoading = false;
+      })
+    },
+
+
     searchQuery(){
+      // 空列表优先判断
+      if (this.findCondition1 == "1" && this.author1PossibleList.length == 0){
+        this.$message('No author named ' + this.searchText);
+        return;
+      }
+
+      if (this.isConnectionShow && this.author2PossibleList.length == 0) {
+        this.$message('No author named ' + this.writerName2);
+        return;
+      }
+
+      this.author1Index = "";
+      this.author2Index = "";
+
+      // 作者1的详细选择
+      if (this.findCondition1 == "1") {
+        // 如果有多个作者，并且还没有选择过具体哪一位作者
+        if (this.author1PossibleList.length > 1 ) {
+          // 打开数据选择界面
+          this.chooseAuthorDialog.authorName = this.searchText;
+          this.chooseAuthorDialog.authorPossibleList = this.author1PossibleList;
+          this.chooseAuthorDialog.selectedAuthor = "";
+          this.isChoosingAuthor = true;
+          return;
+        } else {
+          this.author1Index = this.author1PossibleList[0].authorIndex;
+        }
+      }
+      this.getSearchData();
+    },
+
+    getSearchData(){
+      this.loading = true;
       this.container = document.getElementById("network_id_2");
+      
+
       if (this.isConnectionShow) {
         // 双条件查询
         this.cooperateAuthorsSearch();
@@ -412,9 +669,9 @@ export default {
       }
     },
     
-    formatLongStr(content) {
-      return content.slice(0, 10) + 
-              (content.length > 10 ? "...": "")
+    formatLongStr(content, len = 10) {
+      return content.slice(0, len) + 
+              (content.length > len ? "...": "")
     },
     
     /**
@@ -424,7 +681,6 @@ export default {
       /*
       此处进行选择作者的弹窗提醒
       */
-      this.selectedAuthorIndex="1290846";
 
       // 上一轮数据清空
       this.nodesArray.splice(0, this.nodesArray.length);
@@ -433,9 +689,9 @@ export default {
       // 核心作者结点
       this.nodesArray.push({
         // id
-        id: "a" + this.selectedAuthorIndex, 
+        id: "a" + this.author1Index, 
         // 作者名
-        label: this.searchText, 
+        label: this.formatLongStr(this.searchText), 
         color: {
           background: '#f57797',
           highlight: "#fbc7d4",
@@ -448,8 +704,9 @@ export default {
 
       // 所有请求同时发出
       Promise.all([
-        findAuthorPapers(this.selectedAuthorIndex),
-        findAuthorCooperateAuthors(this.selectedAuthorIndex)
+        findAuthorPapers(this.author1Index),
+        findAuthorCooperateAuthors(this.author1Index),
+        getAuthorDepartment(this.author1Index)
       ]).then(result => {
         console.log(result);
 
@@ -458,8 +715,7 @@ export default {
           this.nodesArray.push({
             id: 'p' + item.index, 
             // title，只显示一部分信息
-            label:item.paper_title.slice(0, 10) + 
-              (item.paper_title.length > 10 ? "...": ""),
+            label:this.formatLongStr(item.paper_title),
             description: item,
             color: {
               background: '#f57797',
@@ -472,7 +728,7 @@ export default {
 
           // 结点和边相连
           this.edgesArray.push({
-            from: "a" + this.selectedAuthorIndex,
+            from: "a" + this.author1Index,
             to: 'p' + item.index,
             label: "Write",
           });
@@ -483,8 +739,7 @@ export default {
           this.nodesArray.push({
             id: 'c' + item.index, 
             // title，只显示一部分信息
-            label: item.name.slice(0, 10) + 
-              (item.name.length > 10 ? "...": ""),
+            label: this.formatLongStr(item.name),
             description: item,
             color: {
               background: '#f57797',
@@ -497,7 +752,7 @@ export default {
 
           // 结点和边相连
           this.edgesArray.push({
-            from: "a" + this.selectedAuthorIndex,
+            from: "a" + this.author1Index,
             to: 'c' + item.index,
             type: "bar",
             arrows: {to: false},
@@ -505,6 +760,30 @@ export default {
           });
         });
 
+        /*处理作者所属部门*/
+        result[2].data.forEach((item, index)=>{
+          this.nodesArray.push({
+            id: 'd' + item, 
+            // title，只显示一部分信息
+            label: this.formatLongStr(item),
+            description: item,
+            color: {
+              background: '#f57797',
+              highlight: "#fbc7d4",
+              hover: "#fbc7d4"
+            },
+            icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+          });
+
+          // 结点和边相连
+          this.edgesArray.push({
+            from: "a" + this.author1Index,
+            to: 'd' + item,
+            type: "bar",
+            label: "Belongs",
+          });
+        })
 
         // 最后配置
         this.canvasShown = true;
@@ -515,17 +794,17 @@ export default {
             nodes: this.nodesArray,
             edges: this.edgesArray,
           }, this.options);
-      }).catch(()=>{
+      }).catch((err)=>{
+        console.log(err)
         this.$message.error("There's something wrong with your network.");
+      }).finally(()=>{
+        this.loading = false;
       })
 
 
       //image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/QQ%E6%88%AA%E5%9B%BE20220601191216.png',
 
       // 获取所有相连的论文
-
-
-      
 
     },
 
@@ -540,7 +819,6 @@ export default {
       this.edgesArray.splice(0, this.edgesArray.length);
       // 查询领域作者
       findAreaAuthors(searchArea).then(response=>{
-        console.log(response);
         if (response.data.length == 0) {
           this.$message('No such area.');
           return;
@@ -638,6 +916,8 @@ export default {
       }).catch((err)=>{
         console.log(err)
         this.$message.error("There's something wrong with your network.");
+      }).finally(()=>{
+        this.loading = false;
       })
     },
 
@@ -645,11 +925,9 @@ export default {
      * 两个作者联合查询
      **/
     cooperateAuthorsSearch(){
-      const authorIndex1 = "6";
-      const authorIndex2 = "195184";
-
-      if (authorIndex1 == authorIndex2) {
+      if (this.author1Index == this.author2Index) {
         this.$message('You cannot choose two same authors!');
+        this.loading = false;
         return;
       }
 
@@ -660,7 +938,7 @@ export default {
       // 添加两个作者结点
       this.nodesArray.push({
         // id
-        id: "a" + authorIndex1, 
+        id: "a" + this.author1Index, 
         // 作者名
         label: this.searchText, 
         color: {
@@ -673,7 +951,7 @@ export default {
       });
       this.nodesArray.push({
         // id
-        id: "a" + authorIndex2, 
+        id: "a" + this.author2Index, 
         // 作者名
         label: this.querySearch2, 
         color: {
@@ -686,7 +964,7 @@ export default {
       });
     
       // 查询两个作者共同发表的论文
-      findCooperatePapers(authorIndex1, authorIndex2).then(response=>{
+      findCooperatePapers(this.author1Index, this.author2Index).then(response=>{
         const cooperatePapers = response.data;
         if (cooperatePapers.length == 0) {
           this.$message('These 2 authors have no cooperate papers.');
@@ -711,12 +989,12 @@ export default {
 
           // 结点和边相连
           this.edgesArray.push({
-            from: "a" + authorIndex1,
+            from: "a" + this.author1Index,
             to: 'p' + paper.index,
             label: "Write",
           });
           this.edgesArray.push({
-            from: "a" + authorIndex2,
+            from: "a" + this.author2Index,
             to: 'p' + paper.index,
             label: "Write",
           });
@@ -737,6 +1015,8 @@ export default {
       }).catch((err)=>{
         console.log(err)
         this.$message.error("There's something wrong with your network.");
+      }).finally(()=>{
+        this.loading = false;
       })
     },
 
@@ -1518,4 +1798,22 @@ export default {
 body {
     margin: 0;
   }
+</style>
+
+<style scoped>
+/* 标签列表 */
+.label-list{
+    padding:1px 1px;
+    margin:1px 1px ;
+}
+.el-tag{
+    float:left;
+    white-space: pre-line;
+    word-break: break-all;
+    margin-top: 5px;
+    margin-left: 5px;
+    max-height: 4vh;
+    color:white;
+}
+
 </style>

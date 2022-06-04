@@ -31,3 +31,23 @@ export function findCooperatePapers(key1, key2) {
         }
     })
 }
+
+export function getBriefAuthorsDescription(key) {
+    return request({
+        url: '/briefAuthors',
+        method: 'get',
+        params: {
+            "authorName": key,
+        }
+    })
+}
+
+export function getAuthorDepartment(key) {
+    return request({
+        url: '/authorDepartment',
+        method: 'get',
+        params: {
+            "authorIndex": key,
+        }
+    })
+}
