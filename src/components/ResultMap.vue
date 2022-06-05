@@ -229,7 +229,6 @@
         {{chooseAuthorDialog.authorName}}, please choose:</h4>
       <!--表格-->
       <el-table
-        :key="tableKey"
         :data="chooseAuthorDialog.authorPossibleList"
         element-loading-text="加载中"
         fit
@@ -1197,16 +1196,7 @@ export default {
       <el-option label="Bacteria" value="2"></el-option>
       <el-option label="Phage" value="3"></el-option>
       */
-      switch (Number(this.findCondition)) {
-        case 1:
-          return findAllSpeciesByKey;
-        case 2:
-          return findBacteriaByKey;
-        case 3:
-          return findPhageByKey;
-        default:
-          return findAllSpeciesByKey
-      }
+      
 
     },
 
@@ -1409,14 +1399,6 @@ export default {
     },
 
     init() {
-      if (this.showTable == true) {
-        this.requestMapDate("All Map", findAllMap, this.initializeOptions);
-        this.drawMapVis(Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY);
-        this.initializeOptions();
-      } else {
-        console.log("limit of search result:", this.showNodeNumber, this.searchScore, this.scoreCompare);
-        this.requestMapDate(this.searchText, this.selectCondition(), this.initializeOptions, this.showNodeNumber, this.searchScore);
-      }
     },
 
     resetAllNodes() {
@@ -1643,99 +1625,7 @@ export default {
 
     drawFinderVis(data_limit = 50, score_limit = Number.NEGATIVE_INFINITY) {
 
-      let mapdata = {
-        nodes: [],
-        edges: [],
-        nodesArray: [],
-        edgesArray: [],
-      };
-      let genbank_set = new Set();
-      let phage_set = new Set();
-
-      data_limit = Number(data_limit);
-      score_limit = Number(score_limit);
-
-
-      let data_num = 0;
-      for (let i in this.visData) {
-
-        let item = this.visData[i];
-
-        if (this.selectScore(item.score, score_limit) == false) {
-          continue;
-        }
-
-        data_num = data_num + 1;
-        genbank_set.add(item.name);
-        phage_set.add(item.scientificName);
-
-        if (data_num >= data_limit) {
-          break;
-        }
-      }
-
-      let genbank_map = new Map()
-      let phage_map = new Map()
-      let cnt = 0;
-      for (let i of genbank_set) {
-        genbank_map.set(i, cnt);
-        cnt = cnt + 1
-      }
-      for (let i of phage_set) {
-        phage_map.set(i, cnt);
-        cnt = cnt + 1
-      }
-
-
-      for (let [k, v] of genbank_map) {
-        mapdata.nodesArray.push({
-          id: v, label: k.replace(/ /g, '\n'),
-          color: {
-            background: '#f57797',
-            highlight: "#fbc7d4",
-            hover: "#fbc7d4"
-          }
-        })
-      }
-
-      for (let [k, v] of phage_map) {
-        mapdata.nodesArray.push({
-          id: v, label: k.replace(/ /g, '\n'),
-          color: {
-            background: "#7574eb",
-            highlight: "#b9b8f5",
-            hover: "#b9b8f5"
-          }
-        })
-      }
-
-      data_num = 0;
-
-      for (let i in this.visData) {
-        let item = this.visData[i];
-
-        if (this.selectScore(item.score, score_limit) == false) {
-          continue;
-        }
-
-        data_num = data_num + 1;
-
-        let g_id = genbank_map.get(item.name);
-        let p_id = phage_map.get(item.scientificName);
-        let len = item.score;
-
-        //console.log("score",len);
-        mapdata.edgesArray.push({from: g_id, to: p_id, label: len.toString()})
-
-        if (data_num >= data_limit) {
-          break;
-        }
-
-      }
-      this.edgesArray = mapdata.edgesArray;
-      this.nodesArray = mapdata.nodesArray;
-      this.nodes = [];
-      this.edges = [];
+      
     },
 
     requestMapDate(str, find, func = () => {
@@ -1751,30 +1641,8 @@ export default {
           //this.$message.error("There's something wrong with your network.");
           console.log("请求错误:" + error.toString());
         });
-        find().then(response => {
-          this.responseData = response.data;
-          this.visData = [];
-          this.drawMapVis(data_limit, score_limit);
-          func();
-
-        }).catch((error) => {
-          //this.$message.error("There's something wrong with your network.");
-          console.log("请求错误:" + error.toString());
-        });
       } else {
-        find(str).then(response => {
-          this.isSearching = false
-          this.responseData = response.data;
-          this.visData = response.data;
-          this.drawFinderVis(data_limit, score_limit);
-          func();
-          this.loading = false;
-        }).catch((error) => {
-          this.isSearching = false
-          this.loading = false;
-          //this.$message.error("There's something wrong with your network.");
-          console.log("请求错误:" + error.toString());
-        });
+       
       }
 
     },
