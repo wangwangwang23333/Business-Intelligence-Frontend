@@ -220,7 +220,8 @@
     <!--作者选择界面-->
     <el-dialog
     width="90%"
-    title="Choose the author you're finding"
+    :title="'Choose the author [' + chooseAuthorDialog.authorName + 
+    '] you\'re finding'"
     :visible.sync="isChoosingAuthor"
     :close-on-click-modal="false"
     append-to-body>
@@ -647,6 +648,17 @@ export default {
           return;
         } else {
           this.author1Index = this.author1PossibleList[0].authorIndex;
+        }
+        // 作者2的考虑
+        if (this.author2PossibleList.length > 1 ) {
+          // 打开数据选择界面
+          this.chooseAuthorDialog.authorName = this.writerName2;
+          this.chooseAuthorDialog.authorPossibleList = this.author2PossibleList;
+          this.chooseAuthorDialog.selectedAuthor = "";
+          this.isChoosingAuthor = true;
+          return;
+        } else {
+          this.author2Index = this.author2PossibleList[0].authorIndex;
         }
       }
       this.getSearchData();
