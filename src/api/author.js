@@ -51,3 +51,13 @@ export function getAuthorDepartment(key) {
         }
     })
 }
+
+export function getAuthorNameById(key) {
+    return request({
+        url: '/authorName',
+        method: 'get',
+        params: {
+            "authorIndex": key,
+        }
+    })
+}
