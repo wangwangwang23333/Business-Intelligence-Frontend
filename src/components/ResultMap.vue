@@ -726,7 +726,7 @@ export default {
           hover: "#fbc7d4"
         },
         icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-        image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+        image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-man-64.png'
         
       });
 
@@ -751,7 +751,7 @@ export default {
               hover: "#fbc7d4"
             },
             icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/QQ%E6%88%AA%E5%9B%BE20220601191216.png'
+            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-paper-64.png'
           });
 
           // 结点和边相连
@@ -775,7 +775,7 @@ export default {
               hover: "#fbc7d4"
             },
             icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-woman-64.png'
           });
 
           // 结点和边相连
@@ -801,7 +801,7 @@ export default {
               hover: "#fbc7d4"
             },
             icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-school-64.png'
           });
 
           // 结点和边相连
@@ -895,7 +895,7 @@ export default {
             hover: "#fbc7d4"
           },
           icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-          image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+          image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-object-96.png'
         });
 
         
@@ -913,7 +913,7 @@ export default {
               hover: "#fbc7d4"
             },
             icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-man-64.png'
           });
 
           // 添加中心结点到author的联系
@@ -949,7 +949,7 @@ export default {
                   hover: "#fbc7d4"
                 },
                 icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-                image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/QQ%E6%88%AA%E5%9B%BE20220601191216.png'
+                image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-paper-64.png'
               });
 
               // 结点和边相连
@@ -1038,7 +1038,7 @@ export default {
           hover: "#fbc7d4"
         },
         icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-        image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+        image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-man-64.png'
       });
       this.nodesArray.push({
         // id
@@ -1051,7 +1051,7 @@ export default {
           hover: "#fbc7d4"
         },
         icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-        image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/author.png'
+        image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-man-64.png'
       });
     
       // 查询两个作者共同发表的论文
@@ -1075,7 +1075,7 @@ export default {
               hover: "#fbc7d4"
             },
             icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/QQ%E6%88%AA%E5%9B%BE20220601191216.png'
+            image: '(https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-paper-64.png'
           });
 
           // 结点和边相连
