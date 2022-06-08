@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+
     <div
         style="background-image: linear-gradient(to bottom,#2c342c 0%, #2c342c 90%, rgba(0,0,0,0) 90% , rgba(0,0,0,0) 100%)">
       <div style="
