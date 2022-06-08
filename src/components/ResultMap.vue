@@ -304,7 +304,7 @@ import {findWriterSuggestion, findAreaSuggestion} from '@/api/finder';
 import {findAllMap, findAllBug} from '@/api/map';
 import {findAuthorPapers, findAuthorCooperateAuthors,
   findCooperatePapers, getBriefAuthorsDescription,
-  getAuthorDepartment} from '@/api/author';
+  getAuthorDepartment, getAuthorNameById} from '@/api/author';
 import {findAreaAuthors} from '@/api/area';
 import 'font-awesome/css/font-awesome.css';
 
@@ -621,6 +621,7 @@ export default {
 
 
     searchQuery(){
+
       // 空列表优先判断
       if (this.findCondition1 == "1" && this.author1PossibleList.length == 0){
         this.$message('No author named ' + this.searchText);
@@ -649,15 +650,18 @@ export default {
           this.author1Index = this.author1PossibleList[0].authorIndex;
         }
         // 作者2的考虑
-        if (this.author2PossibleList.length > 1 ) {
-          // 打开数据选择界面
-          this.chooseAuthorDialog.authorName = this.writerName2;
-          this.chooseAuthorDialog.authorPossibleList = this.author2PossibleList;
-          this.chooseAuthorDialog.selectedAuthor = "";
-          this.isChoosingAuthor = true;
-          return;
-        } else {
-          this.author2Index = this.author2PossibleList[0].authorIndex;
+        if (this.isConnectionShow  ) {
+          if (this.author2PossibleList.length > 1) {
+            // 打开数据选择界面
+            this.chooseAuthorDialog.authorName = this.writerName2;
+            this.chooseAuthorDialog.authorPossibleList = this.author2PossibleList;
+            this.chooseAuthorDialog.selectedAuthor = "";
+            this.isChoosingAuthor = true;
+            return;
+          } else {
+            this.author2Index = this.author2PossibleList[0].authorIndex;
+          }
+          
         }
       }
       this.getSearchData();
@@ -805,6 +809,38 @@ export default {
             nodes: this.nodesArray,
             edges: this.edgesArray,
           }, this.options);
+
+        // 点击
+        this.network.on("click", params => {
+          params.event.preventDefault();
+          if (params.nodes.length == 0) {
+            return;
+          }
+          const nodeId = params.nodes[0];
+          if (nodeId && nodeId.length > 0 && nodeId[0] == 'c') {
+            const searchAuthorId = nodeId.slice(1);
+            // 获取作者名称
+            getAuthorNameById(searchAuthorId).then(response=>{
+              const newAuthorName = response.data;
+              // 关闭
+              this.$confirm('Search for author: '+ newAuthorName+ '?', 'Confirmation', {
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No',
+                type: 'warning'
+              }).then(() => {
+                // 以该作者进行搜索
+                this.author1Index = searchAuthorId;
+                this.searchText = newAuthorName;
+                this.findCondition1 = '1';
+                this.isConnectionShow = false;
+                this.singleAuthorSearch();
+              }).catch(() => {
+
+              }) 
+            })
+          }
+        });
+
       }).catch((err)=>{
         console.log(err)
         this.$message.error("There's something wrong with your network.");
@@ -921,6 +957,37 @@ export default {
               nodes: this.nodesArray,
               edges: this.edgesArray,
             }, this.options);
+          
+            this.network.on("click", params => {
+              params.event.preventDefault();
+              if (params.nodes.length == 0) {
+                return;
+              }
+              const nodeId = params.nodes[0];
+              if (nodeId && nodeId.length > 0 && nodeId[0] == 'a') {
+                const searchAuthorId = nodeId.slice(1);
+                // 获取作者名称
+                getAuthorNameById(searchAuthorId).then(response=>{
+                  const newAuthorName = response.data;
+                  // 关闭
+                  this.$confirm('Search for author: '+ newAuthorName+ '?', 'Confirmation', {
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No',
+                    type: 'warning'
+                  }).then(() => {
+                    // 以该作者进行搜索
+                    this.author1Index = searchAuthorId;
+                    this.searchText = newAuthorName;
+                    this.findCondition1 = '1';
+                    this.isConnectionShow = false;
+                    this.singleAuthorSearch();
+                  }).catch(() => {
+
+                  }) 
+                })
+              }
+            });
+
         })
         
         
@@ -1020,7 +1087,37 @@ export default {
             nodes: this.nodesArray,
             edges: this.edgesArray,
           }, this.options);
+        
 
+          this.network.on("click", params => {
+              params.event.preventDefault();
+              if (params.nodes.length == 0) {
+                return;
+              }
+              const nodeId = params.nodes[0];
+              if (nodeId && nodeId.length > 0 && nodeId[0] == 'a') {
+                const searchAuthorId = nodeId.slice(1);
+                // 获取作者名称
+                getAuthorNameById(searchAuthorId).then(response=>{
+                  const newAuthorName = response.data;
+                  // 关闭
+                  this.$confirm('Search for author: '+ newAuthorName+ '?', 'Confirmation', {
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No',
+                    type: 'warning'
+                  }).then(() => {
+                    // 以该作者进行搜索
+                    this.author1Index = searchAuthorId;
+                    this.searchText = newAuthorName;
+                    this.findCondition1 = '1';
+                    this.isConnectionShow = false;
+                    this.singleAuthorSearch();
+                  }).catch(() => {
+
+                  }) 
+                })
+              }
+            });
         
 
       }).catch((err)=>{
