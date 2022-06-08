@@ -22,6 +22,19 @@
 
     <!--width,height 画布的宽度，高度。 可以是百分比或像素，一般在dom元素上设置 -->
     <div v-if="showTable" sytle="text-align : center;">
+      <div>
+        <el-autocomplete
+              class="input-with-select"
+              style="width: 90%;margin-left: 5%;"
+              v-model="searchText"
+              :fetch-suggestions="querySearch1"
+              :highlight-first-item="true"
+              placeholder="Research Topic"
+              @change="onAuthor1Change"
+              @select="onAuthor1Change"
+            >
+          </el-autocomplete>
+      </div>
       <el-table
           ref="multipleTable"
           :data="tableData"
