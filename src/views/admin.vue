@@ -153,6 +153,7 @@
                         :data = "tableData"
                         style="margin: auto;width: 90%; margin-top: 5%;"
                         height="400"
+                        stripe
                         border>
                       <el-table-column
                           v-for="(item,index) in tableHead" :key="index"
