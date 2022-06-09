@@ -412,6 +412,9 @@ export default {
     };
   },
   created() {
+    if (this.showTable) {
+      this.findCondition1 = "2";
+    }
     this.expandedMAPNode = new Set()
     this.nodeMap = new Map()
     this.options = {
