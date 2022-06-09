@@ -60,9 +60,79 @@
     </div>
 
     <!--    功能板块-->
-    <div style="margin-bottom: 2em;width: 80%;height: 40vh" ref="chart">
-<!--      &lt;!&ndash;搜索框&ndash;&gt;-->
-<!--      <ResultMap :showTable="true"/>-->
+    <div style="margin-bottom: 2em;margin-top: 2%">
+      <el-form
+          :model="ruleFormAuthorDepart"
+          :rules="rulesAuthorDepart"
+          ref="ruleFormAuthorDepart"
+          class="demo-ruleForm"
+          >
+  <!--      &lt;!&ndash;搜索框&ndash;&gt;-->
+        <el-row>
+          <el-col :span="12">
+            <span style="width: 30%;float: left;margin-top: 1%">choose Area:</span>
+            <el-form-item prop="chosedArea">
+              <el-autocomplete
+                class="input-with-select"
+                style="width: 60%;margin-left: 5%"
+                v-model="ruleFormAuthorDepart.chosedArea"
+                :fetch-suggestions="autoSearchArea"
+                :highlight-first-item="true"
+                placeholder="Research Topic"
+            >
+            </el-autocomplete>
+            </el-form-item>
+          </el-col>
+          <!--选择筛选条件-->
+          <el-col :span = '12'>
+            <span style="width: 30%;float:left;margin-top: 1%">choose indicators:</span>
+            <el-form-item prop="indicator">
+              <el-select
+                v-model="ruleFormAuthorDepart.indicator"
+                placeholder="Please choose indicators"
+                style="width: 60%;margin-left: 10%">
+              <el-option
+                  v-for="item in indicatorOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                  style="width: 100%">
+              </el-option>
+            </el-select>
+            </el-form-item>
+          </el-col>
+
+        </el-row>
+        <el-row>
+          <el-col :span="8">
+            <p style="width: 30%;float: left">author limits:</p>
+            <el-form-item prop="authorLimit">
+              <el-input-number
+                style="width: 40%;margin-top: 2%"
+                v-model="ruleFormAuthorDepart.authorLimit"
+                :min="1" :max="10"
+                label="author limits">
+            </el-input-number>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <p style="width: 40%;float: left">department limits:</p>
+            <el-form-item prop="departmentLimit">
+              <el-input-number
+                style="width: 40%;margin-top: 2%"
+                v-model="ruleFormAuthorDepart.departmentLimit"
+                :min="1" :max="10"
+                label="author limits">
+            </el-input-number>
+            </el-form-item>
+          </el-col>
+          <el-col :span = "8">
+            <el-button
+                style="margin-top: 2%;margin-left: 5%"
+                @click="searchTopAuthDepart">Search</el-button>
+          </el-col>
+        </el-row>
+      </el-form>
     </div>
 
 
@@ -141,13 +211,55 @@
 import {sendComment} from '@/api/board';
 import '@/assets/*.js'
 import * as echarts from 'echarts';
+import ResultMap from "@/components/ResultMap";
+import {findAreaSuggestion} from "@/api/finder";
+
+const indicatorOptions = [{
+      value: 'pi',
+      label: 'pi'
+    }, {
+      value: 'hi',
+      label: 'hi'
+    }, {
+      value: 'upi',
+      label: 'upi'
+    }]
+
 
 export default {
   name: 'Map',
   components: {
+
+
   },
   created() {
 
+  },
+  data() {
+    return {
+      dialogVisible: false,
+      firstname: '',
+      lastname: '',
+      content: '',
+      indicatorOptions,
+      ruleFormAuthorDepart:{
+        // 输入的关键领域
+        chosedArea: '',
+        //筛选条件
+        indicator: '',
+        //作者的数量
+        authorLimit: 1,
+        departmentLimit: 1,
+      },
+      rulesAuthorDepart: {
+        chosedArea: [
+          { required: true, message: 'Please choose Area!', trigger: 'blur' },
+        ],
+        indicator:[
+          { required: true, message: 'Please choose indicator!', trigger: 'blur' },
+        ]
+      }
+    }
   },
   mounted(){
     this.$refs["home"].scrollIntoView(true);
@@ -157,7 +269,7 @@ export default {
     getEchartData() {
       const chart = this.$refs.chart
       if (chart) {
-        const myChart = echarts.init(chart,'chalk')
+        const myChart = echarts.init(chart,'purple-passion')
         const option = {
           title: {
             text: 'Basic Radar Chart'
@@ -205,11 +317,36 @@ export default {
         });
       })
     },
-    
+    //搜索领域
+    autoSearchArea(key, cb){
+      if(key === '')
+          key = 'A'
+      // 领域的远程搜索
+      findAreaSuggestion(key).then(response => {
+        this.remoteAreaList = response.data;
+        cb(response.data.map((item)=>{
+          return {"value": item};
+        }));
+      }).catch(()=>{
+        this.$message.error("There's something wrong with your network.");
+      })
+    },
+    //搜索关键作者和部门
+    searchTopAuthDepart(){
+      this.$refs['ruleFormAuthorDepart'].validate((valid) => {
+        if (valid) {
+          console.log(this.ruleFormAuthorDepart)
+
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
     //发送留言
     addComment() {
       //判断是否输入了FirstName
-      if (this.firstname.length == 0) {
+      if (this.firstname.length === 0) {
         this.$message({
           message: 'Please input your first name!',
           type: 'warning'
@@ -293,15 +430,6 @@ export default {
       this.$refs["start"].scrollIntoView(true);
     },
 
-  },
-  data() {
-    return {
-      dialogVisible: false,
-      firstname: '',
-      lastname: '',
-      content: '',
-      
-    }
   },
   computed: {
     curPageContents: function () {
@@ -480,4 +608,17 @@ export default {
   position: relative;
   transform: scale(1.1);
 }
+::v-deep .el-input__inner {
+  width: 100%!important;
+}
+
+::v-deep .el-input {
+  width: 100%!important;
+}
+
+::v-deep .my-select{
+  display: block!important;;
+  width: 100%!important;
+}
+
 </style>

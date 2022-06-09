@@ -95,7 +95,7 @@
                             ref = "upload"
                             drag
                             name = "excel"
-                            action="https://dw"
+                            action="https://101.34.214.247:6001/api/Upload"
                             :on-error = "uploadFalse"
                             :on-success = "uploadSuccess"
                             :limit = "1"
@@ -172,6 +172,7 @@
 <script>
 import { getComment,deleteComment } from '@/api/board';
 import * as XLSX from "xlsx";
+import {uploadCsv} from "@/api/upload";
 Array.prototype.remove = function(from, to) {
   var rest = this.slice((to || from) + 1 || this.length);
   this.length = from < 0 ? this.length + from : from;
@@ -209,7 +210,7 @@ export default{
           tableList,
           //对应的表头规则
           tableRule,
-          currentChosedTableName: 'Aminer_Author'
+          currentChosedTableName: 'Aminer_Author',
         }
     },
     created(){
@@ -291,19 +292,28 @@ export default{
             if(index >= this.tableRule[this.currentChosedTableName].length || item !== this.tableRule[this.currentChosedTableName])
               flag = false
           })
-          return flag
+          return true
         },
-        async readCsvFile(){
+        readCsvFile(){
           // 从文件读取
           console.log(this.fileList)
           if(this.fileList.length === 0){
             this.$message.error("您还没有选择上传的csv文件！")
+            return
           }
           //检验表头是否合法
           if(!this.checkValidateHead(this.tableHead)){
             this.$message.error("您选择的文件不符合要求的表头格式，请重新选择上传！")
+            return
           }
-          //this.$refs.upload.submit();
+          this.fileList[0].file = this.fileList[0].raw
+          let param = new FormData()
+          param.append('file', this.fileList[0].raw)
+          param.append('name',this.fileList[0].name)
+          uploadCsv(param).then((res)=>{
+            console.log(res)
+          })
+          console.log(this.fileList)
         },
       //上传文件之前对钩子
         beforeUpload(file){
@@ -320,6 +330,7 @@ export default{
             return true
           }
           this.$message.warning('请上传不超过100M的文件.')
+
         },
       // 选取文件后，讲file转换成json
         handleChange(file,fileList){
@@ -358,6 +369,7 @@ export default{
               }
               console.log(111)
               this.tableData = excelData
+
           }
           },
       //上传文件失败
@@ -407,8 +419,16 @@ export default{
       margin: 0 auto;
       text-align: center;
     }
+    ::v-deep .el-input__inner {
+      width: 100%!important;
+    }
 
-    .el-select .el-input {
-      width: 30%;
+    ::v-deep .el-input {
+      width: 100%!important;
+    }
+
+    ::v-deep .my-select{
+      display: block!important;;
+      width: 100%!important;
     }
     </style>
