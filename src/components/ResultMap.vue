@@ -101,7 +101,7 @@
           class="sub-title" style="line-height: 5vh;font-weight: bold;margin-left: 5%;margin-top: 3vh;">Searching
             Entity Condition
           </div>
-          <div style="height: 60%;">
+          <div style="height: 30%;">
             <el-autocomplete
               class="input-with-select"
               style="width: 90%;margin-left: 5%;"
@@ -151,6 +151,10 @@
           :loading="loading || author1PossibleListLoading || author2PossibleListLoading"
           plain icon="el-icon-search" round>
           Search</el-button>
+          <div style="margin-left: 5%; margin-top: 10%;">
+            <el-image src="https://wwwtypora.oss-cn-shanghai.aliyuncs.com/image-20220609173037207.png"
+            style="width:25vw;"></el-image>
+          </div>
         </div>
       </el-col>
       
@@ -223,6 +227,7 @@
           </div>
 
           <!--下面是介绍-->
+
           <div style="margin-top: 15%;margin-left: 8%;">
             <el-image :src="require('@/assets/tips.png')" style="width: 25vw;"></el-image>
           </div>
