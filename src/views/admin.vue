@@ -236,7 +236,7 @@ export default{
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                deleteComment(this.comments[id].id).then(response=>{
+                deleteComment(this.comments[id].commentId).then(response=>{
                     response
                     
                     //从comments中删除下标为id
