@@ -209,7 +209,7 @@
 
 <script>
 import {sendComment} from '@/api/board';
-import '@/assets/*.js'
+import '@/assets/theme.js'
 import * as echarts from 'echarts';
 import ResultMap from "@/components/ResultMap";
 import {findAreaSuggestion} from "@/api/finder";
