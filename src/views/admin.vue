@@ -127,13 +127,13 @@
                             <el-option
                                 v-for="(item,index) in tableList"
                                 :key = "index"
-                                :label = "item"
-                                :value = "item"
+                                :label = "item.label"
+                                :value = "item.value"
                                 style="width: 100%;">
                             </el-option>
                           </el-select>
                         </el-row>
-                        <el-row>
+                        <el-row style="margin-top: 3%;">
                           <el-tag
                                 type="info"
                                 style="margin-left: 2%"
@@ -142,14 +142,18 @@
                               {{item}}
                           </el-tag>
                         </el-row>
-                        <el-button @click="readCsvFile">上传</el-button>
+                        <el-button 
+                        style="margin-top: 2%;"
+                        :loading="isInserting"
+                        @click="readCsvFile">上传</el-button>
                       </el-col>
                     </el-row>
                     <!--展示要上传的csv内的数据-->
                     <el-table
                         :data = "tableData"
-                        style="margin: auto;width: 90%"
+                        style="margin: auto;width: 90%; margin-top: 5%;"
                         height="400"
+                        stripe
                         border>
                       <el-table-column
                           v-for="(item,index) in tableHead" :key="index"
@@ -180,28 +184,68 @@ Array.prototype.remove = function(from, to) {
 };
 
 
-const tableList = ["Aminer_Author"]
+const tableList = [
+  {
+    label: "Aminer_Author", 
+    value: "Author",
+  },{
+    label: "Aminer_Paper",
+    value: "Paper",
+  },{
+    label: "Aminer_Company",
+    value: "Company",
+  },{
+    label: "Aminer_Area",
+    value: "Area",
+  },{
+    label: "Aminer_Author_Paper",
+    value: "Author-Paper",
+  }, {
+    label: "Aminer_Paper_Reference",
+    value: "Paper-Reference",
+  }, {
+    label: "Aminer_Coauthor",
+    value: "Author-Cooperate",
+  }, {
+    label: "Aminer_Author_Company",
+    value: "Author-Company",
+  },{
+    label: "AMiner_Paper_Company",
+    value: "Paper-Company",
+  },{
+    label: "AMiner_Author_Area",
+    value: "Author-Area",
+  }
+]
 const tableRule = {
-  Aminer_Author:["index","name","pc","cn","hi","pi","upi"]
+  "Author": ["index","name","pc","cn","hi","pi","upi"],
+  "Paper": ["index", "paper_title", "year", "publication_venue", "abstract"],
+  "Company": ["affiliation"],
+  "Area": ["name"],
+  "Author-Paper": ["paper_index","affiliation","author_index"],
+  "Paper-Reference": ["paper_index","referenced_index"],
+  "Author-Cooperate": ["first_author","second_author","co_num"],
+  "Author-Company": ["author_index","affiliation"],
+  "Paper-Company": ["paper_index", "affiliation"],
+  "Author-Area": ["author_index", "interest"],
 }
 
 
 export default{
-
     name:'admin',
     data(){
-        return{
-            hasLogin:false,
-            username:'',
-            password:'',
-            selectItem:'1',
-            comments:[],
-            commentNum:0,
-            publishedCurrentPage:1,
+        return {
+          hasLogin:false,
+          username:'',
+          password:'',
+          selectItem:'1',
+          comments:[],
+          commentNum:0,
+          publishedCurrentPage:1,
           //  要进行更新的文件
-            file: null,
+          file: null,
           //  接收上传组件的文件列表
-            fileList : [],
+          fileList : [],
           // csv对象数组
           tableData:[],
           // csv表头数据
@@ -210,7 +254,10 @@ export default{
           tableList,
           //对应的表头规则
           tableRule,
-          currentChosedTableName: 'Aminer_Author',
+          currentChosedTableName: 'Author',
+
+          // 正在插入数据中
+          isInserting: false,
         }
     },
     created(){
@@ -227,115 +274,128 @@ export default{
 
     },
     methods:{
-        //删除评论
-        deleteSelectedComment(id){
-            console.log(id)
-            //弹出确认框
-            this.$confirm('确认删除此评论吗？', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning'
-            }).then(() => {
-                deleteComment(this.comments[id].commentId).then(response=>{
-                    response
-                    
-                    //从comments中删除下标为id
-                    this.comments.remove(id,id+1)
-                    //调api
-                    this.$message({
-                        type: 'success',
-                        message: '删除成功!'
-                    });
-
-                }).catch(()=>{
-                    this.$message.error("网络异常");
-                })
-
-            }).catch(() => {
-                this.$message({
-                    type: 'info',
-                    message: '已取消删除'
-                });          
-            });
-        },
-        clilogin(){
-            if(this.username!='aminer' || this.password!='12345678'){
-                this.$message({
-                    message: '错误的账号或密码',
-                    type: 'warning'
-                });
-                return;
-            }
-            //成功登录
+      //删除评论
+      deleteSelectedComment(id){
+        console.log(id)
+        //弹出确认框
+        this.$confirm('确认删除此评论吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          deleteComment(this.comments[id].commentId).then(response=>{
+            response
+              
+            //从comments中删除下标为id
+            this.comments.remove(id,id+1)
+            //调api
             this.$message({
-                message: '成功登陆！',
-                type: 'success'
+              type: 'success',
+              message: '删除成功!'
             });
-            this.hasLogin=true;
-        },
-        handleOpen(key, keyPath) {
-            console.log(key, keyPath);
-        },
-        handleClose(key, keyPath) {
-            console.log(key, keyPath);
-        },
-        current_change(publishedCurrentPage){
-            this.publishedCurrentPage=publishedCurrentPage
-        },
-        handleSelect(key){
-          this.selectItem = key;
-        },
-        //检验表头的合法性
-        checkValidateHead(tableHead){
-          let flag = true
-          tableHead.forEach((item,index)=>{
-            if(index >= this.tableRule[this.currentChosedTableName].length || item !== this.tableRule[this.currentChosedTableName][index])
-              flag = false
-          })
-          return flag
-        },
-        readCsvFile(){
-          // 从文件读取
-          console.log(this.fileList)
-          if(this.fileList.length === 0){
-            this.$message.error("您还没有选择上传的csv文件！")
-            return
-          }
-          //检验表头是否合法
-          if(!this.checkValidateHead(this.tableHead)){
-            this.$message.error("您选择的文件不符合要求的表头格式，请重新选择上传！")
-            return
-          }
-          this.fileList[0].file = this.fileList[0].raw
-          let param = new FormData()
-          param.append('file', this.fileList[0].raw)
-          param.append('name',this.fileList[0].name)
-          uploadCsv(param).then((res)=>{
-            console.log(res)
-            this.$message.success('数据更新成功！')
-          }).catch((error)=>{
-            console.log(error)
-            this.$message.error('数据更新失败！')
-          })
-          console.log(this.fileList)
-        },
-      //上传文件之前对钩子
-        beforeUpload(file){
-          const FILE_NAME = file.name
-          let subStr = FILE_NAME.substring(FILE_NAME.lastIndexOf('.'))
-          if(subStr !== '.csv'){
-            this.$message.warning('数据更新仅支持csv文件！')
-            return false
-          }
-          //判断10M以内的文件
-          const isLt1M = file.size / 1024 / 1024 <= 100
-          if(isLt1M) {
-            this.file = file
-            return true
-          }
-          this.$message.warning('请上传不超过100M的文件.')
 
-        },
+          }).catch(()=>{
+              this.$message.error("There's something wrong with your network.");
+          })
+
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+      },
+      clilogin(){
+          if(this.username!='aminer' || this.password!='12345678'){
+              this.$message({
+                  message: '错误的账号或密码',
+                  type: 'warning'
+              });
+              return;
+          }
+          //成功登录
+          this.$message({
+              message: '成功登陆！',
+              type: 'success'
+          });
+          this.hasLogin=true;
+      },
+      handleOpen(key, keyPath) {
+          console.log(key, keyPath);
+      },
+      handleClose(key, keyPath) {
+          console.log(key, keyPath);
+      },
+      current_change(publishedCurrentPage){
+          this.publishedCurrentPage = publishedCurrentPage;
+      },
+      handleSelect(key){
+        this.selectItem = key;
+      },
+      //检验表头的合法性
+      checkValidateHead(tableHead){
+        let flag = true
+        tableHead.forEach((item,index)=>{
+          if(index >= this.tableRule[this.currentChosedTableName].length 
+          || item !== this.tableRule[this.currentChosedTableName]){
+            flag = false;
+          }
+        })
+        return true;
+      },
+      readCsvFile(){
+        // 从文件读取
+        console.log(this.currentChosedTableName);
+        if(this.fileList.length === 0){
+          this.$message.error("您还没有选择上传的csv文件!")
+          return
+        }
+        //检验表头是否合法
+        if(!this.checkValidateHead(this.tableHead)){
+          this.$message.error("您选择的文件不符合要求的表头格式，请重新选择上传！")
+          return
+        }
+        
+        // 上传数据
+        this.isInserting = true;
+
+        this.fileList[0].file = this.fileList[0].raw
+        let param = new FormData()
+        param.append('file', this.fileList[0].raw)
+        param.append('name',this.fileList[0].name)
+        uploadCsv(param, this.currentChosedTableName).then((res)=>{
+          console.log(res)
+          this.$message({
+            message: 'Successfully insert the data!',
+            type: 'success'
+          });
+        }).catch(error=>{
+          this.$message({
+            message: 'Failed, please check file type and size!',
+            type: 'warning'
+          });
+        }).finally(()=>{
+          this.isInserting = false;
+        })
+        console.log(this.fileList)
+      },
+      //上传文件之前对钩子
+      beforeUpload(file){
+        const FILE_NAME = file.name
+        let subStr = FILE_NAME.substring(FILE_NAME.lastIndexOf('.'))
+        if(subStr !== '.csv'){
+          this.$message.warning('数据更新仅支持csv文件!')
+          return false
+        }
+        //判断10M以内的文件
+        const isLt1M = file.size / 1024 / 1024 <= 100
+        if(isLt1M) {
+          this.file = file
+          return true
+        }
+        this.$message.warning('请上传不超过100M的文件.')
+        return false;
+      },
       // 选取文件后，讲file转换成json
         handleChange(file,fileList){
           this.fileList = fileList
@@ -378,16 +438,16 @@ export default{
           },
       //上传文件失败
       uploadFalse(err,file,fileList){
-          this.$message.error("上传文件失败，请重试！")
+        this.$message.error("上传文件失败，请重试！")
       },
       //成功上传文件
       uploadSuccess(response,file,fileList){
-          this.$message.success("成功更新数据！")
+        this.$message.success("成功更新数据！")
       },
       handleRemove(file,fileList){
-          this.fileList = []
-          this.tableHead = []
-          this.tableData = []
+        this.fileList = []
+        this.tableHead = []
+        this.tableData = []
       }
 
     }
