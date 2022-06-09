@@ -289,10 +289,10 @@ export default{
         checkValidateHead(tableHead){
           let flag = true
           tableHead.forEach((item,index)=>{
-            if(index >= this.tableRule[this.currentChosedTableName].length || item !== this.tableRule[this.currentChosedTableName])
+            if(index >= this.tableRule[this.currentChosedTableName].length || item !== this.tableRule[this.currentChosedTableName][index])
               flag = false
           })
-          return true
+          return flag
         },
         readCsvFile(){
           // 从文件读取
@@ -312,6 +312,10 @@ export default{
           param.append('name',this.fileList[0].name)
           uploadCsv(param).then((res)=>{
             console.log(res)
+            this.$message.success('数据更新成功！')
+          }).catch((error)=>{
+            console.log(error)
+            this.$message.error('数据更新失败！')
           })
           console.log(this.fileList)
         },

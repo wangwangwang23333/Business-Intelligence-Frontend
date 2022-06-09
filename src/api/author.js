@@ -61,3 +61,11 @@ export function getAuthorNameById(key) {
         }
     })
 }
+
+export function searchImportAuthDepart(param){
+    return request({
+        url: '/importantAuthorsDept',
+        method: 'get',
+        params: param
+    })
+}
