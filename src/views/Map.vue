@@ -21,16 +21,21 @@
 
         <!--      大标题-->
         <div style="display: inline-flex; font-size: 4em; padding-top: 3em">
-          <img src="@/assets/logo.png" style="display:inline-block;width: 1em; height: 1em; margin-right: .5em; padding-top: 15px">
-          <span style=" font-weight: bold;">Interactive MAP</span>
+          <img
+              src="@/assets/BI-logo.png"
+              style="display:inline-block;width: 1em; height: 1em; margin-right: .5em; padding-top: 15px"
+              class="dynamic-animation">
+          <span
+              style=" font-weight: bold;"
+              class="dynamic-animation">Smart Search</span>
         </div>
 
         <!--        说明-->
         <div
             style=" font-size: medium;   padding-bottom: 1rem;
             padding-top: 6em;">
-            A visual network diagram of <br>
-            the Phage-Superbug interactions.
+          In this section you can search for information <br>
+          about papers and collaborations of different authors.
         </div>
 
         <!--      按钮-->
@@ -55,9 +60,9 @@
     </div>
 
     <!--    功能板块-->
-    <div style="margin-bottom: 2em;">
-      <!--搜索框-->
-      <ResultMap :showTable="true"/>
+    <div style="margin-bottom: 2em;width: 80%;height: 40vh" ref="chart">
+<!--      &lt;!&ndash;搜索框&ndash;&gt;-->
+<!--      <ResultMap :showTable="true"/>-->
     </div>
 
 
@@ -134,22 +139,72 @@
 
 <script>
 import {sendComment} from '@/api/board';
-import ResultMap from '@/components/ResultMap.vue'
+import '@/assets/*.js'
+import * as echarts from 'echarts';
 
 export default {
   name: 'Map',
   components: {
-    ResultMap
   },
   created() {
 
-    
   },
   mounted(){
     this.$refs["home"].scrollIntoView(true);
+    this.getEchartData()
   },
   methods: {
-    
+    getEchartData() {
+      const chart = this.$refs.chart
+      if (chart) {
+        const myChart = echarts.init(chart,'chalk')
+        const option = {
+          title: {
+            text: 'Basic Radar Chart'
+          },
+          legend: {
+            data: ['Allocated Budget', 'Actual Spending']
+          },
+          radar: {
+            // shape: 'circle',
+            indicator: [
+              { name: 'Sales', max: 6500 },
+              { name: 'Administration', max: 16000 },
+              { name: 'Information Technology', max: 30000 },
+              { name: 'Customer Support', max: 38000 },
+              { name: 'Development', max: 52000 },
+              { name: 'Marketing', max: 25000 }
+            ]
+          },
+          series: [
+            {
+              name: 'Budget vs spending',
+              type: 'radar',
+              data: [
+                {
+                  value: [4200, 3000, 20000, 35000, 50000, 18000],
+                  name: 'Allocated Budget'
+                },
+                {
+                  value: [5000, 14000, 28000, 26000, 42000, 21000],
+                  name: 'Actual Spending'
+                }
+              ]
+            }
+          ]
+        };
+
+        myChart.setOption(option)
+        window.addEventListener("resize", function() {
+          myChart.resize()
+        })
+      }
+      this.$on('hook:destroyed',()=>{
+        window.removeEventListener("resize", function() {
+          myChart.resize();
+        });
+      })
+    },
     
     //发送留言
     addComment() {
@@ -413,5 +468,16 @@ export default {
   background: #1c7cfc;
   color: #fcfcfc;
   border-color: #2c342c;
+}
+
+.dynamic-animation{
+  -webkit-transition-duration: 0.3s;
+  transition-duration: 0.3s;
+  -webkit-transition-property: transform;
+  transition-property:  transform;
+}
+.dynamic-animation:hover,.dynamic-animation:focus,.dynamic-animation:active {
+  position: relative;
+  transform: scale(1.1);
 }
 </style>
