@@ -29,10 +29,8 @@ export function sendComment(data) {
 
 
 export function deleteComment(data){
-  console.log(data)
   return request({  
-    url: '/comment/delete/'+data,
+    url: '/Comments/'+data,
     method: 'delete',
-    data:''
   })
 }
