@@ -127,13 +127,13 @@
                             <el-option
                                 v-for="(item,index) in tableList"
                                 :key = "index"
-                                :label = "item"
-                                :value = "item"
+                                :label = "item.label"
+                                :value = "item.value"
                                 style="width: 100%;">
                             </el-option>
                           </el-select>
                         </el-row>
-                        <el-row>
+                        <el-row style="margin-top: 3%;">
                           <el-tag
                                 type="info"
                                 style="margin-left: 2%"
@@ -142,13 +142,16 @@
                               {{item}}
                           </el-tag>
                         </el-row>
-                        <el-button @click="readCsvFile">上传</el-button>
+                        <el-button 
+                        style="margin-top: 2%;"
+                        :loading="isInserting"
+                        @click="readCsvFile">上传</el-button>
                       </el-col>
                     </el-row>
                     <!--展示要上传的csv内的数据-->
                     <el-table
                         :data = "tableData"
-                        style="margin: auto;width: 90%"
+                        style="margin: auto;width: 90%; margin-top: 5%;"
                         height="400"
                         border>
                       <el-table-column
@@ -180,9 +183,27 @@ Array.prototype.remove = function(from, to) {
 };
 
 
-const tableList = ["Aminer_Author"]
+const tableList = [
+  {
+    label: "Aminer_Author", 
+    value: "Author",
+  },{
+    label: "Aminer_Paper",
+    value: "Paper",
+  },{
+    label: "Aminer_Company",
+    value: "Company",
+  },{
+    label: "Aminer_Area",
+    value: "Area",
+  }
+]
 const tableRule = {
-  Aminer_Author:["index","name","pc","cn","hi","pi","upi"]
+  "Author": ["index","name","pc","cn","hi","pi","upi"],
+  "Paper": ["index", "paper_title", "year", "publication_venue", "abstract"],
+  "Company": ["affiliation"],
+  "Area": ["name"],
+  
 }
 
 
@@ -191,17 +212,17 @@ export default{
     name:'admin',
     data(){
         return{
-            hasLogin:false,
-            username:'',
-            password:'',
-            selectItem:'1',
-            comments:[],
-            commentNum:0,
-            publishedCurrentPage:1,
+          hasLogin:false,
+          username:'',
+          password:'',
+          selectItem:'1',
+          comments:[],
+          commentNum:0,
+          publishedCurrentPage:1,
           //  要进行更新的文件
-            file: null,
+          file: null,
           //  接收上传组件的文件列表
-            fileList : [],
+          fileList : [],
           // csv对象数组
           tableData:[],
           // csv表头数据
@@ -210,7 +231,10 @@ export default{
           tableList,
           //对应的表头规则
           tableRule,
-          currentChosedTableName: 'Aminer_Author',
+          currentChosedTableName: 'Author',
+
+          // 正在插入数据中
+          isInserting: false,
         }
     },
     created(){
@@ -289,16 +313,19 @@ export default{
         checkValidateHead(tableHead){
           let flag = true
           tableHead.forEach((item,index)=>{
-            if(index >= this.tableRule[this.currentChosedTableName].length || item !== this.tableRule[this.currentChosedTableName])
-              flag = false
+            if(index >= this.tableRule[this.currentChosedTableName].length 
+            || item !== this.tableRule[this.currentChosedTableName]){
+              flag = false;
+            }
+              
           })
-          return true
+          return true;
         },
         readCsvFile(){
           // 从文件读取
-          console.log(this.fileList)
+          console.log(this.currentChosedTableName);
           if(this.fileList.length === 0){
-            this.$message.error("您还没有选择上传的csv文件！")
+            this.$message.error("您还没有选择上传的csv文件!")
             return
           }
           //检验表头是否合法
@@ -306,12 +333,27 @@ export default{
             this.$message.error("您选择的文件不符合要求的表头格式，请重新选择上传！")
             return
           }
+          
+          // 上传数据
+          this.isInserting = true;
+
           this.fileList[0].file = this.fileList[0].raw
           let param = new FormData()
           param.append('file', this.fileList[0].raw)
           param.append('name',this.fileList[0].name)
-          uploadCsv(param).then((res)=>{
+          uploadCsv(param, this.currentChosedTableName).then((res)=>{
             console.log(res)
+              this.$message({
+                message: 'Successfully insert the data!',
+                type: 'success'
+              });
+          }).catch(error=>{
+            this.$message({
+              message: 'Failed, please check file type and size!',
+              type: 'warning'
+            });
+          }).finally(()=>{
+            this.isInserting = false;
           })
           console.log(this.fileList)
         },

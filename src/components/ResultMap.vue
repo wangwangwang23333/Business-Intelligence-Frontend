@@ -1083,7 +1083,7 @@ export default {
               hover: "#fbc7d4"
             },
             icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-            image: '(https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-paper-64.png'
+            image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-paper-64.png'
           });
 
           // 结点和边相连
