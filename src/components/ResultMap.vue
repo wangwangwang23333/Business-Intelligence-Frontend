@@ -1010,6 +1010,26 @@ export default {
                 return;
               }
               const nodeId = params.nodes[0];
+
+              // 论文信息
+              if (nodeId && nodeId.length > 0 && nodeId[0] == 'p') {
+                const paperId = nodeId.slice(1);
+                getPaperById(paperId).then(response => {
+                  const paperInfo = response.data;
+                  this.$notify({
+                    title: 'Paper',
+                    dangerouslyUseHTMLString: true,
+                    message: '<div><b>Title</b>: ' + paperInfo.paper_title + 
+                      '</div>' + "<div><b>Year</b>: " + paperInfo.year.slice(0, 4) +
+                      '</div>' + "<div><b>Publication Venue</b>: " + paperInfo.publication_venue + '</div>'
+                      + (paperInfo.abstract != 'nan' && paperInfo.abstract != undefined ? 
+                        '<div>' + '<b>Abstract</b>: ' + paperInfo.abstract + '</div>': ''),
+                    duration: 0
+                  });
+                  
+                })
+              }
+
               if (nodeId && nodeId.length > 0 && nodeId[0] == 'a') {
                 const searchAuthorId = nodeId.slice(1);
                 // 获取作者名称
@@ -1139,6 +1159,26 @@ export default {
               return;
             }
             const nodeId = params.nodes[0];
+
+            // 论文信息
+            if (nodeId && nodeId.length > 0 && nodeId[0] == 'p') {
+              const paperId = nodeId.slice(1);
+              getPaperById(paperId).then(response => {
+                const paperInfo = response.data;
+                this.$notify({
+                  title: 'Paper',
+                  dangerouslyUseHTMLString: true,
+                  message: '<div><b>Title</b>: ' + paperInfo.paper_title + 
+                    '</div>' + "<div><b>Year</b>: " + paperInfo.year.slice(0, 4) +
+                    '</div>' + "<div><b>Publication Venue</b>: " + paperInfo.publication_venue + '</div>'
+                    + (paperInfo.abstract != 'nan' && paperInfo.abstract != undefined ? 
+                      '<div>' + '<b>Abstract</b>: ' + paperInfo.abstract + '</div>': ''),
+                  duration: 0
+                });
+                
+              })
+            }
+
             if (nodeId && nodeId.length > 0 && nodeId[0] == 'a') {
               const searchAuthorId = nodeId.slice(1);
               // 获取作者名称
