@@ -339,7 +339,7 @@
         </el-table-column>
         <el-table-column align="right">
           <template slot="header">
-            <el-button size="mini" type="primary" @click="downloadAllFiles()">Download All</el-button>
+            <el-button size="mini" type="primary" @click="downloadAllFiles()">View Page</el-button>
           </template>
           <template slot-scope="scope">
             <el-button size="mini" @click="handleDownload(scope.$index, scope.row)">Download</el-button>
@@ -493,13 +493,14 @@
       },
 
       handleDownload(index, row) {
-        //console.log(index, row.table);
+        console.log(index, row.table);
+        window.open('https://lfs.aminer.cn/lab-datasets/aminerdataset/' + row.table);
 
-        window.open('files/database/'+row.table+'.csv')
+        //window.open('files/database/'+row.table+'.csv')
       },
 
       downloadAllFiles(){
-        window.open('files/database.zip')
+        window.open('https://www.aminer.cn/aminernetwork')
 
       },
 
@@ -617,38 +618,15 @@
       ],
       tableData: [
         {
-          table: 'bacteria'
+          table: 'AMiner-Paper.rar'
         },
         {
-          table: 'bacteria_phage_score'
+          table: 'AMiner-Author.zip'
         },
         {
-          table: 'bacteria_spacer'
+          table: 'AMiner-Coauthor.zip'
         },
-        {
-          table: 'bacteria_taxon'
-        },
-        {
-          table: 'bug_score_with_name'
-        },
-        {
-          table: 'phage'
-        },
-        {
-          table: 'phage_bug'
-        },
-        {
-          table: 'result'
-        },
-        {
-          table: 'score_bug'
-        },
-        {
-          table: 'score_with_name'
-        },
-        {
-          table: 'super_bug'
-        }
+        
 
       ],
       search: ''
