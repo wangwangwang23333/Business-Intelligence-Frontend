@@ -117,21 +117,42 @@
                       </el-col>
                       <el-col :span = "12">
 
-                        <p style="margin-left: 10%">请选择您要更新的表：</p>
-                        <el-row style="width: 100%">
-                          <el-select
-                              v-model="currentChosedTableName"
+                        <el-row>
+                          <el-col :span="16">
+                            <p style="margin-left: 10%">请选择您要更新的表：</p>
+                            <el-row style="width: 100%">
+                              <el-select
+                                  v-model="currentChosedTableName"
+                                  placeholder="请选择"
+                                  style="width: 50%"
+                                  >
+                                <el-option
+                                    v-for="(item,index) in tableList"
+                                    :key = "index"
+                                    :label = "item.label"
+                                    :value = "item.value"
+                                    style="width: 100%;">
+                                </el-option>
+                              </el-select>
+                            </el-row>
+                          </el-col>
+                          <!--更新模式-->
+                          <el-col :span="8">
+                            <p style="margin-left: 10%">更新模式：</p>
+                            <el-select
+                              v-model="selectedUpdateType"
                               placeholder="请选择"
-                              style="width: 50%"
+                              style="width: 80%"
                               >
-                            <el-option
-                                v-for="(item,index) in tableList"
+                              <el-option
+                                v-for="(item,index) in updateType"
                                 :key = "index"
-                                :label = "item.label"
-                                :value = "item.value"
+                                :label = "item"
+                                :value = "item"
                                 style="width: 100%;">
-                            </el-option>
-                          </el-select>
+                              </el-option>
+                              </el-select>
+                          </el-col>
                         </el-row>
                         <el-row style="margin-top: 3%;">
                           <el-tag
@@ -145,6 +166,7 @@
                         <el-button 
                         style="margin-top: 2%;"
                         :loading="isInserting"
+                        icon="el-icon-upload"
                         @click="readCsvFile">上传</el-button>
                       </el-col>
                     </el-row>
@@ -165,6 +187,7 @@
                     </el-table>
 
                   </div>
+
 
                 </el-col>
             </el-row>
@@ -233,7 +256,7 @@ const tableRule = {
 
 export default{
     name:'admin',
-    data(){
+    data() {
         return {
           hasLogin:false,
           username:'',
@@ -256,6 +279,9 @@ export default{
           tableRule,
           currentChosedTableName: 'Author',
 
+          selectedUpdateType: "CREATE",
+          updateType: ["CREATE", "MERGE"],
+
           // 正在插入数据中
           isInserting: false,
         }
@@ -264,13 +290,19 @@ export default{
         getComment().then(response=>{
             this.comments=eval(response.data);
             //按时间倒序排列
-            this.commentNum=this.comments.length
-            this.couponList=response.data.couponList; 
+            this.commentNum = this.comments.length
+            this.couponList = response.data.couponList; 
             console.log(this.comments)
         }).catch(()=>{
             this.$message.error("There's something wrong with your network.");
         })
-
+        if (localStorage.getItem("login") != null) {
+          this.$message({
+            message: 'Successfully Login!',
+            type: 'success'
+          });
+          this.hasLogin=true;
+        }
 
     },
     methods:{
@@ -287,7 +319,7 @@ export default{
             response
               
             //从comments中删除下标为id
-            this.comments.remove(id,id+1)
+            this.comments.remove(id, id+1);
             //调api
             this.$message({
               type: 'success',
@@ -308,17 +340,18 @@ export default{
       clilogin(){
         if(this.username!='aminer' || this.password!='12345678'){
           this.$message({
-            message: '错误的账号或密码',
+            message: 'Wrong username or password!',
             type: 'warning'
           });
           return;
         }
         //成功登录
         this.$message({
-          message: 'Successfully Login！',
+          message: 'Successfully Login!',
           type: 'success'
         });
         this.hasLogin=true;
+        localStorage.setItem("login", "true");
       },
       handleOpen(key, keyPath) {
         console.log(key, keyPath);
