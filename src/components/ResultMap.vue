@@ -532,6 +532,7 @@ export default {
         improvedLayout: false
       }
     };
+    
   },
   
   methods: {
@@ -1770,8 +1771,6 @@ export default {
       this.edgesArray = [];
       this.nodesArray = [];
       this.initializeOptions();
-      console.log("searching:", this.searchText);
-      console.log("limit of search result:", this.showNodeNumber, this.searchScore, this.scoreCompare);
       this.requestMapDate(this.searchText, this.selectCondition(), this.initializeOptions, this.showNodeNumber, this.searchScore);
 
     }
@@ -1779,6 +1778,24 @@ export default {
 
   mounted() {
     this.init();
+    
+    const searchIndex = this.$route.query.index;
+    if (searchIndex != null) {
+      // 父元素跳转
+      setTimeout(() => {
+        this.$emit("gotoStart");
+      }, 1000);
+      getAuthorNameById(searchIndex).then(response=>{
+        const newAuthorName = response.data;
+        this.author1Index = searchIndex;
+        this.searchText = newAuthorName;
+        this.findCondition1 = '1';
+        this.isConnectionShow = false;
+        this.loading = true;
+        this.container = document.getElementById("network_id_2");
+        this.singleAuthorSearch();
+      })
+    }
   }
 };
 </script>

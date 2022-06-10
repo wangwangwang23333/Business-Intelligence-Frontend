@@ -313,7 +313,7 @@
             <br>
 
             <b>ADDRESS</b>
-            <div>Tongji University, No.4800 caoan Road, Jiading District, Shanghai</div>
+            <div>Tongji University, No.4800 CaoAn Road, Jiading District, Shanghai</div>
             <br>
           </div>
         </div>
