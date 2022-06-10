@@ -316,13 +316,13 @@ export default {
   methods: {
     //前往图数据页面
     goToVisualizationPage(){
-        let index = this.authorData.importAuthors.reduce((result, item) => {
-          if(result)
-              return result
-          else
-              return item.name === this.chosedAuthor ? item.index : null
-        }, null)
-      console.log(index)
+      let index = this.authorData.importAuthors.reduce((result, item) => {
+        if (result)
+          return result
+        else
+          return item.name === this.chosedAuthor ? item.index : null
+      }, null)
+
       if (index == null) {
         return;
       }
