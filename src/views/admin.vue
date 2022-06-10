@@ -367,6 +367,7 @@ export default{
       },
       //检验表头的合法性
       checkValidateHead(tableHead){
+
         let flag = true
         console.log(this.tableRule[this.currentChosedTableName],tableHead)
         tableHead.forEach((item,index)=>{
@@ -442,12 +443,12 @@ export default{
         fileReader.onload=(ev)=> {
           //读取的文件
           let data = ev.target.result
-
           data = data.substring(0,Math.min(data.length,100000));
           //以二进制流方式读取得到整份excel表格
           const workbook = XLSX.read(data, {type: 'binary'})
           // 循环遍历excel的sheet
           console.log(workbook)
+
 
           // 清空表头
           this.tableHead = [];
