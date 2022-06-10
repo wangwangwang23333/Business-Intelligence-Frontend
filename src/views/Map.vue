@@ -145,12 +145,15 @@
           <div
               v-show="hasDataAuthDept"
               ref="radar-chart-author-dept"
-              style="min-width: 100%;max-width:100%;min-height: 350px;max-height: 50%"></div>
-
+              style="min-width: 50%;max-width:50%;min-height: 350px;max-height: 50%;display: inline-block"></div>
+          <div
+              v-show="hasDataAuthDept"
+              ref="radar-chart-dept"
+              style="min-width: 50%;max-width:50%;min-height: 350px;max-height: 50%;display: inline-block"></div>
           <div
               v-show="hasDataAuthDept"
               ref="radar-chart-author-info"
-              style="min-width: 100%;max-width:100%;min-height: 500px;max-height: 50%"></div>
+              style="min-width: 100%;max-width:100%;min-height: 500px;max-height: 50%;margin-top: -1%"></div>
           <el-button v-show="hasDataAuthDept"
                     style="position: relative;left: 40%;top:-50%"
                     @click="goToVisualizationPage"> Go to search this author</el-button>
@@ -287,15 +290,12 @@ export default {
         // 输入的关键领域
         chosedArea: '',
         //筛选条件
-        indicator: '',
+        indicator: 'hi',
         //作者的数量
         authorLimit: 1,
         departmentLimit: 1,
       },
       rulesAuthorDepart: {
-        chosedArea: [
-          { required: true, message: 'Please choose Area!', trigger: 'blur' },
-        ],
         indicator:[
           { required: true, message: 'Please choose indicator!', trigger: 'blur' },
         ]
@@ -316,9 +316,12 @@ export default {
   methods: {
     //前往图数据页面
     goToVisualizationPage(){
-      let index = this.authorData.importAuthors.reduce((result,item)=>{
-        return item.name === this.chosedAuthor ? item.index : null
-      },null)
+        let index = this.authorData.importAuthors.reduce((result, item) => {
+          if(result)
+              return result
+          else
+              return item.name === this.chosedAuthor ? item.index : null
+        }, null)
       console.log(index)
       if (index == null) {
         return;
@@ -604,6 +607,10 @@ export default {
     searchTopAuthDepart(){
       this.$refs['ruleFormAuthorDepart'].validate((valid) => {
         if (valid) {
+          if(!this.ruleFormAuthorDepart.chosedArea){
+            this.$message.error('You have not choose an area!')
+            return
+          }
           console.log(this.ruleFormAuthorDepart)
           let param = {
             area: this.ruleFormAuthorDepart.chosedArea,
