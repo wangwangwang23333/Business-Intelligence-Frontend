@@ -117,21 +117,42 @@
                       </el-col>
                       <el-col :span = "12">
 
-                        <p style="margin-left: 10%">请选择您要更新的表：</p>
-                        <el-row style="width: 100%">
-                          <el-select
-                              v-model="currentChosedTableName"
+                        <el-row>
+                          <el-col :span="16">
+                            <p style="margin-left: 10%">请选择您要更新的表：</p>
+                            <el-row style="width: 100%">
+                              <el-select
+                                  v-model="currentChosedTableName"
+                                  placeholder="请选择"
+                                  style="width: 50%"
+                                  >
+                                <el-option
+                                    v-for="(item,index) in tableList"
+                                    :key = "index"
+                                    :label = "item.label"
+                                    :value = "item.value"
+                                    style="width: 100%;">
+                                </el-option>
+                              </el-select>
+                            </el-row>
+                          </el-col>
+                          <!--更新模式-->
+                          <el-col :span="8">
+                            <p style="margin-left: 10%">更新模式：</p>
+                            <el-select
+                              v-model="selectedUpdateType"
                               placeholder="请选择"
-                              style="width: 50%"
+                              style="width: 80%"
                               >
-                            <el-option
-                                v-for="(item,index) in tableList"
+                              <el-option
+                                v-for="(item,index) in updateType"
                                 :key = "index"
-                                :label = "item.label"
-                                :value = "item.value"
+                                :label = "item"
+                                :value = "item"
                                 style="width: 100%;">
-                            </el-option>
-                          </el-select>
+                              </el-option>
+                              </el-select>
+                          </el-col>
                         </el-row>
                         <el-row style="margin-top: 3%;">
                           <el-tag
@@ -145,6 +166,7 @@
                         <el-button 
                         style="margin-top: 2%;"
                         :loading="isInserting"
+                        icon="el-icon-upload"
                         @click="readCsvFile">上传</el-button>
                       </el-col>
                     </el-row>
@@ -165,6 +187,7 @@
                     </el-table>
 
                   </div>
+
 
                 </el-col>
             </el-row>
@@ -233,7 +256,7 @@ const tableRule = {
 
 export default{
     name:'admin',
-    data(){
+    data() {
         return {
           hasLogin:false,
           username:'',
@@ -256,6 +279,9 @@ export default{
           tableRule,
           currentChosedTableName: 'Author',
 
+          selectedUpdateType: "CREATE",
+          updateType: ["CREATE", "MERGE"],
+
           // 正在插入数据中
           isInserting: false,
         }
@@ -264,13 +290,19 @@ export default{
         getComment().then(response=>{
             this.comments=eval(response.data);
             //按时间倒序排列
-            this.commentNum=this.comments.length
-            this.couponList=response.data.couponList; 
+            this.commentNum = this.comments.length
+            this.couponList = response.data.couponList; 
             console.log(this.comments)
         }).catch(()=>{
             this.$message.error("There's something wrong with your network.");
         })
-
+        if (localStorage.getItem("login") != null) {
+          this.$message({
+            message: 'Successfully Login!',
+            type: 'success'
+          });
+          this.hasLogin=true;
+        }
 
     },
     methods:{
@@ -287,7 +319,7 @@ export default{
             response
               
             //从comments中删除下标为id
-            this.comments.remove(id,id+1)
+            this.comments.remove(id, id+1);
             //调api
             this.$message({
               type: 'success',
@@ -306,28 +338,29 @@ export default{
         });
       },
       clilogin(){
-          if(this.username!='aminer' || this.password!='12345678'){
-              this.$message({
-                  message: '错误的账号或密码',
-                  type: 'warning'
-              });
-              return;
-          }
-          //成功登录
+        if(this.username!='aminer' || this.password!='12345678'){
           this.$message({
-              message: '成功登陆！',
-              type: 'success'
+            message: 'Wrong username or password!',
+            type: 'warning'
           });
-          this.hasLogin=true;
+          return;
+        }
+        //成功登录
+        this.$message({
+          message: 'Successfully Login!',
+          type: 'success'
+        });
+        this.hasLogin=true;
+        localStorage.setItem("login", "true");
       },
       handleOpen(key, keyPath) {
-          console.log(key, keyPath);
+        console.log(key, keyPath);
       },
       handleClose(key, keyPath) {
-          console.log(key, keyPath);
+        console.log(key, keyPath);
       },
       current_change(publishedCurrentPage){
-          this.publishedCurrentPage = publishedCurrentPage;
+        this.publishedCurrentPage = publishedCurrentPage;
       },
       handleSelect(key){
         this.selectItem = key;
@@ -336,13 +369,14 @@ export default{
       checkValidateHead(tableHead){
 
         let flag = true
+        console.log(this.tableRule[this.currentChosedTableName],tableHead)
         tableHead.forEach((item,index)=>{
           if(index >= this.tableRule[this.currentChosedTableName].length 
-          || item !== this.tableRule[this.currentChosedTableName]){
+          || item !== this.tableRule[this.currentChosedTableName][index]){
             flag = false;
           }
         })
-        return true;
+        return flag;
       },
       readCsvFile(){
         // 从文件读取
@@ -398,46 +432,56 @@ export default{
         return false;
       },
       // 选取文件后，讲file转换成json
-        handleChange(file,fileList){
-          this.fileList = fileList
-          console.log(file)
-          var excelData = []
-          const fileReader = new FileReader()
-          //读取文件
-          fileReader.readAsText(file.raw,'utf-8')
-          //文件读取成功时触发事件
-          fileReader.onload=ev=> {
-              //读取的文件
-              let data = ev.target.result
+      handleChange(file,fileList){
+        this.fileList = fileList
+        console.log(file)
+        var excelData = []
+        const fileReader = new FileReader()
+        //读取文件
+        fileReader.readAsText(file.raw,'utf-8')
+        //文件读取成功时触发事件
+        fileReader.onload=(ev)=> {
+          //读取的文件
+          let data = ev.target.result
+          data = data.substring(0,Math.min(data.length,100000));
+          //以二进制流方式读取得到整份excel表格
+          const workbook = XLSX.read(data, {type: 'binary'})
+          // 循环遍历excel的sheet
+          console.log(workbook)
 
-              data = data.substring(0,Math.min(data.length,100000));
-              //以二进制流方式读取得到整份excel表格
-              const workbook = XLSX.read(data, {type: 'binary'})
-              // 循环遍历excel的sheet
-              console.log('获取到的表格',workbook)
-              Object.keys(workbook.Sheets).forEach((sheet, index) => {
-                console.info(workbook.Sheets[sheet]['!ref'])
-                excelData.push(
-                    //将excel 转换成json对象放入数组中
-                    ...XLSX.utils.sheet_to_json(workbook.Sheets[sheet])
-                )
-              })
-              this.data = excelData
-              console.log(excelData)
-              // 获取表头数据,使用第一行数据来获取
-            this.tableHead = []
 
-              if(excelData.length > 0) {
-                const tableItem = excelData[0]
-                for(let key of Object.keys(tableItem)){
-                  this.tableHead.push(key)
-                }
-              }
-              console.log(111)
-              this.tableData = excelData
+          // 清空表头
+          this.tableHead = [];
 
-          }
-          },
+          Object.keys(workbook.Sheets).forEach((sheet, index) => {
+
+            // 获取表头数据,使用第一行数据来获取
+            let maxStartCode = workbook.Sheets[sheet]['!ref'][3];
+            for (let startCode = 'A'; startCode <= maxStartCode; 
+            startCode = String.fromCharCode(startCode.charCodeAt()+1)) {
+              this.tableHead.push(workbook.Sheets[sheet][startCode + '1']['v'])
+            }
+            console.log(this.tableHead)
+
+            excelData.push(
+                //将excel 转换成json对象放入数组中
+                ...XLSX.utils.sheet_to_json(workbook.Sheets[sheet])
+            )
+          })
+
+          console.log(excelData.length)
+          // 获取表头数据,使用第一行数据来获取
+          // this.tableHead = []
+          // if(excelData.length > 0) {
+          //   const tableItem = excelData[0]
+          //   console.log('items', excelData)
+          //   for(let key of Object.keys(tableItem)){
+          //     this.tableHead.push(key)
+          //   }
+          // }
+          this.tableData = excelData;
+        };
+      },
       //上传文件失败
       uploadFalse(err,file,fileList){
         this.$message.error("上传文件失败，请重试！")
