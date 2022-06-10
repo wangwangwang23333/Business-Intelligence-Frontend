@@ -151,6 +151,8 @@
               v-show="hasDataAuthDept"
               ref="radar-chart-author-info"
               style="min-width: 100%;max-width:100%;min-height: 500px;max-height: 50%"></div>
+          <el-button v-show="hasDataAuthDept"
+                    style="position: relative;left: 40%;top:-50%"> Go to search this author</el-button>
         </div>
       </el-form>
     </div>
@@ -264,18 +266,6 @@ const labelSetting = {
   fontSize: 16
 };
 
-const options = [
-  makeOption('pictorialBar'),
-  makeOption('bar'),
-  makeOption('pictorialBar', 'diamond')
-];
-var optionIndex = 0;
-option = options[optionIndex];
-setInterval(function () {
-  optionIndex = (optionIndex + 1) % options.length;
-  myChart.setOption(options[optionIndex]);
-}, 2500);
-
 export default {
   name: 'Map',
   components: {
@@ -310,7 +300,13 @@ export default {
         ]
       },
       //第一个查询是否含有数据
-      hasDataAuthDept: false
+      hasDataAuthDept: false,
+      my_Chart: null,
+      //雷达图中被选择的作者
+      chosedAuthor: null,
+      // 作者的数据
+      authorData: null,
+      interval : null,
     }
   },
   mounted(){
@@ -332,13 +328,18 @@ export default {
       })
     },
     //绘制作者详情柱状图
-    drawAuthorInfo(data,authorName){
+    drawAuthorInfo(type, symbol,chosedAuthor,data){
+      let chosedData = null
+      data.importAuthors.forEach((item,index)=>{
+        if(item.name === chosedAuthor)
+          chosedData = item
+      })
       return {
         title: {
-          text: 'Vehicles in X City'
+          text: chosedAuthor + "'s basic information"
         },
         legend: {
-          data: ['2015', '2016']
+          data: [chosedAuthor, 'best author']
         },
         tooltip: {
           trigger: 'axis',
@@ -351,7 +352,7 @@ export default {
           left: 20
         },
         yAxis: {
-          data: ['reindeer', 'ship', 'plane', 'train', 'car'],
+          data: ['hi', 'pc', 'pi', 'cn', 'upi'],
           inverse: true,
           axisLine: { show: false },
           axisTick: { show: false },
@@ -375,7 +376,7 @@ export default {
         animationDurationUpdate: 500,
         series: [
           {
-            name: '2015',
+            name: chosedAuthor,
             id: 'bar1',
             type: type,
             label: labelSetting,
@@ -390,29 +391,29 @@ export default {
             },
             data: [
               {
-                value: 157,
+                value: chosedData.hi,
                 symbol: symbol || pathSymbols.reindeer
               },
               {
-                value: 21,
+                value: chosedData.pc,
                 symbol: symbol || pathSymbols.ship
               },
               {
-                value: 66,
+                value: chosedData.pi,
                 symbol: symbol || pathSymbols.plane
               },
               {
-                value: 78,
+                value: chosedData.cn,
                 symbol: symbol || pathSymbols.train
               },
               {
-                value: 123,
+                value: chosedData.upi,
                 symbol: symbol || pathSymbols.car
               }
             ]
           },
           {
-            name: '2016',
+            name: 'best author',
             id: 'bar2',
             type: type,
             barGap: '10%',
@@ -427,23 +428,23 @@ export default {
             },
             data: [
               {
-                value: 184,
+                value: data.importAuthors[0].hi,
                 symbol: symbol || pathSymbols.reindeer
               },
               {
-                value: 29,
+                value: data.importAuthors[0].pc,
                 symbol: symbol || pathSymbols.ship
               },
               {
-                value: 73,
+                value: data.importAuthors[0].pi,
                 symbol: symbol || pathSymbols.plane
               },
               {
-                value: 91,
+                value: data.importAuthors[0].cn,
                 symbol: symbol || pathSymbols.train
               },
               {
-                value: 95,
+                value: data.importAuthors[0].upi,
                 symbol: symbol || pathSymbols.car
               }
             ]
@@ -521,9 +522,7 @@ export default {
               data: circleData
             }
           ],
-          label:{
-            show: true
-          },
+
 
         };
 
@@ -538,10 +537,27 @@ export default {
             myChart.resize();
           });
         })
-
+        let func = this.drawAuthorInfo
+        let data1 = this.authorData
+        let chosed_chart = this.$refs["radar-chart-author-info"]
+        this.my_Chart = echarts.init(chosed_chart,'purple-passion')
+        let new_chart = this.my_Chart
+        let interval = this.interval
         // 处理点击事件并且弹出数据名称
         myChart.on('click', function (params) {
-          alert(params.name);
+          const options = [
+            func('pictorialBar',null,params.name,data1),
+            func('bar', null, params.name,data1),
+            func('pictorialBar','diamond', params.name,data1)
+          ];
+          let optionIndex = 0
+          for (let i = 1; i < 10000; i++) {
+            clearInterval(i);
+          }
+          interval = setInterval(function () {
+            optionIndex = (optionIndex + 1) % options.length;
+            new_chart.setOption(options[optionIndex]);
+          }, 2500);
         });
       }
 
@@ -560,12 +576,27 @@ export default {
           }
           let authorLimit = this.ruleFormAuthorDepart.authorLimit
           searchImportAuthDepart(param).then((res)=>{
-            console.log(res)
+            console.log(res.data)
+            this.authorData = res.data
+            this.chosedAuthor = null
             if(res.data.importAuthors.length !== 0 || res.data.importantDepartments.length !== 0){
               this.hasDataAuthDept = true
-
               this.$nextTick(()=>{
                 this.drawImportAuthDept(res.data,authorLimit)
+                const options = [
+                  this.drawAuthorInfo('pictorialBar',null,this.chosedAuthor === null ? res.data.importAuthors[0].name : this.chosedAuthor,res.data),
+                  this.drawAuthorInfo('bar', null, this.chosedAuthor === null ? res.data.importAuthors[0].name : this.chosedAuthor,res.data),
+                  this.drawAuthorInfo('pictorialBar','diamond', this.chosedAuthor === null ? res.data.importAuthors[0].name : this.chosedAuthor,res.data)
+                ];
+                let _this = this
+                let optionIndex = 0
+                const chart = this.$refs["radar-chart-author-info"]
+                this.my_Chart = echarts.init(chart,'purple-passion')
+                clearInterval(this.interval)
+                this.interval = setInterval(function () {
+                  optionIndex = (optionIndex + 1) % options.length;
+                  _this.my_Chart.setOption(options[optionIndex]);
+                }, 2500);
               })
             }
             console.log(this.hasDataAuthDept)

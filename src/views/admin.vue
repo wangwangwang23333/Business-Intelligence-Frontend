@@ -334,6 +334,7 @@ export default{
       },
       //检验表头的合法性
       checkValidateHead(tableHead){
+
         let flag = true
         tableHead.forEach((item,index)=>{
           if(index >= this.tableRule[this.currentChosedTableName].length 
@@ -413,7 +414,7 @@ export default{
               //以二进制流方式读取得到整份excel表格
               const workbook = XLSX.read(data, {type: 'binary'})
               // 循环遍历excel的sheet
-              console.log(workbook)
+              console.log('获取到的表格',workbook)
               Object.keys(workbook.Sheets).forEach((sheet, index) => {
                 console.info(workbook.Sheets[sheet]['!ref'])
                 excelData.push(
@@ -422,9 +423,10 @@ export default{
                 )
               })
               this.data = excelData
-              console.log(excelData.length)
+              console.log(excelData)
               // 获取表头数据,使用第一行数据来获取
             this.tableHead = []
+
               if(excelData.length > 0) {
                 const tableItem = excelData[0]
                 for(let key of Object.keys(tableItem)){
