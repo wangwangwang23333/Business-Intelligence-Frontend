@@ -323,6 +323,7 @@ import {findAllMap, findAllBug} from '@/api/map';
 import {findAuthorPapers, findAuthorCooperateAuthors,
   findCooperatePapers, getBriefAuthorsDescription,
   getAuthorDepartment, getAuthorNameById} from '@/api/author';
+import {getPaperById} from '@/api/paper';
 import {findAreaAuthors} from '@/api/area';
 import 'font-awesome/css/font-awesome.css';
 
@@ -861,6 +862,27 @@ export default {
               }) 
             })
           }
+
+          // 论文信息
+          if (nodeId && nodeId.length > 0 && nodeId[0] == 'p') {
+            const paperId = nodeId.slice(1);
+            getPaperById(paperId).then(response => {
+              const paperInfo = response.data;
+              this.$notify({
+                title: 'Paper',
+                dangerouslyUseHTMLString: true,
+                message: '<div><b>Title</b>: ' + paperInfo.paper_title + 
+                  '</div>' + "<div><b>Year</b>: " + paperInfo.year.slice(0, 4) +
+                  '</div>' + "<div><b>Publication Venue</b>: " + paperInfo.publication_venue + '</div>'
+                  + (paperInfo.abstract != 'nan' && paperInfo.abstract != undefined ? 
+                    '<div>' + '<b>Abstract</b>: ' + paperInfo.abstract + '</div>': ''),
+                duration: 0
+              });
+              
+            })
+          }
+
+          // 部门信息
           if (nodeId && nodeId.length > 0 && nodeId[0] == 'd') {
             const departmentName = nodeId.slice(1);
             this.$notify({
