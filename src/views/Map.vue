@@ -152,7 +152,8 @@
               ref="radar-chart-author-info"
               style="min-width: 100%;max-width:100%;min-height: 500px;max-height: 50%"></div>
           <el-button v-show="hasDataAuthDept"
-                    style="position: relative;left: 40%;top:-50%"> Go to search this author</el-button>
+                    style="position: relative;left: 40%;top:-50%"
+                    @click="goToVisualizationPage"> Go to search this author</el-button>
         </div>
       </el-form>
     </div>
@@ -313,6 +314,14 @@ export default {
     this.$refs["home"].scrollIntoView(true);
   },
   methods: {
+    //前往图数据页面
+    goToVisualizationPage(){
+      let index = this.authorData.importAuthors.reduce((result,item)=>{
+        return item.name === this.chosedAuthor ? item.index : null
+      },null)
+      console.log(index)
+      this.$router.push({ path:'/finder', params:{index:index} })
+    },
     //搜索领域
     autoSearchArea(key, cb){
       if(key === '')
@@ -334,6 +343,7 @@ export default {
         if(item.name === chosedAuthor)
           chosedData = item
       })
+
       return {
         title: {
           text: chosedAuthor + "'s basic information"
@@ -582,11 +592,15 @@ export default {
             if(res.data.importAuthors.length !== 0 || res.data.importantDepartments.length !== 0){
               this.hasDataAuthDept = true
               this.$nextTick(()=>{
+                for (let i = 1; i < 10000; i++) {
+                  clearInterval(i);
+                }
                 this.drawImportAuthDept(res.data,authorLimit)
+                this.chosedAuthor = res.data.importAuthors[0].name
                 const options = [
-                  this.drawAuthorInfo('pictorialBar',null,this.chosedAuthor === null ? res.data.importAuthors[0].name : this.chosedAuthor,res.data),
-                  this.drawAuthorInfo('bar', null, this.chosedAuthor === null ? res.data.importAuthors[0].name : this.chosedAuthor,res.data),
-                  this.drawAuthorInfo('pictorialBar','diamond', this.chosedAuthor === null ? res.data.importAuthors[0].name : this.chosedAuthor,res.data)
+                  this.drawAuthorInfo('pictorialBar',null,res.data.importAuthors[0].name,res.data),
+                  this.drawAuthorInfo('bar', null, res.data.importAuthors[0].name,res.data),
+                  this.drawAuthorInfo('pictorialBar','diamond', res.data.importAuthors[0].name,res.data)
                 ];
                 let _this = this
                 let optionIndex = 0
