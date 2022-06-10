@@ -532,6 +532,7 @@ export default {
         improvedLayout: false
       }
     };
+    
   },
   
   methods: {
@@ -860,6 +861,14 @@ export default {
               }) 
             })
           }
+          if (nodeId && nodeId.length > 0 && nodeId[0] == 'd') {
+            const departmentName = nodeId.slice(1);
+            this.$notify({
+              title: 'Department',
+              message: departmentName,
+              duration: 0
+            });
+          }
         });
 
       }).catch((err)=>{
@@ -869,10 +878,6 @@ export default {
         this.loading = false;
       })
 
-
-      //image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/QQ%E6%88%AA%E5%9B%BE20220601191216.png',
-
-      // 获取所有相连的论文
 
     },
 
@@ -905,8 +910,6 @@ export default {
           icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
           image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-object-96.png'
         });
-
-        
 
         const authorSearchTask  = response.data.map(item => {
           // 加入author结点
@@ -1013,7 +1016,6 @@ export default {
         
         
       }).catch((err)=>{
-        console.log(err)
         this.$message.error("There's something wrong with your network.");
       }).finally(()=>{
         this.loading = false;
@@ -1108,35 +1110,34 @@ export default {
             nodes: this.nodesArray,
             edges: this.edgesArray,
           }, this.options);
-        
 
           this.network.on("click", params => {
-              params.event.preventDefault();
-              if (params.nodes.length == 0) {
-                return;
-              }
-              const nodeId = params.nodes[0];
-              if (nodeId && nodeId.length > 0 && nodeId[0] == 'a') {
-                const searchAuthorId = nodeId.slice(1);
-                // 获取作者名称
-                getAuthorNameById(searchAuthorId).then(response=>{
-                  const newAuthorName = response.data;
-                  // 关闭
-                  this.$confirm('Search for author: '+ newAuthorName+ '?', 'Confirmation', {
-                    confirmButtonText: 'Yes',
-                    cancelButtonText: 'No',
-                    type: 'warning'
-                  }).then(() => {
-                    // 以该作者进行搜索
-                    this.author1Index = searchAuthorId;
-                    this.searchText = newAuthorName;
-                    this.findCondition1 = '1';
-                    this.isConnectionShow = false;
-                    this.singleAuthorSearch();
-                  }).catch(() => {
+            params.event.preventDefault();
+            if (params.nodes.length == 0) {
+              return;
+            }
+            const nodeId = params.nodes[0];
+            if (nodeId && nodeId.length > 0 && nodeId[0] == 'a') {
+              const searchAuthorId = nodeId.slice(1);
+              // 获取作者名称
+              getAuthorNameById(searchAuthorId).then(response=>{
+                const newAuthorName = response.data;
+                // 关闭
+                this.$confirm('Search for author: '+ newAuthorName+ '?', 'Confirmation', {
+                  confirmButtonText: 'Yes',
+                  cancelButtonText: 'No',
+                  type: 'warning'
+                }).then(() => {
+                  // 以该作者进行搜索
+                  this.author1Index = searchAuthorId;
+                  this.searchText = newAuthorName;
+                  this.findCondition1 = '1';
+                  this.isConnectionShow = false;
+                  this.singleAuthorSearch();
+                }).catch(() => {
 
-                  }) 
-                })
+                }) 
+              })
               }
             });
         
@@ -1215,9 +1216,6 @@ export default {
       }
       this.isConnectionShow = true;
     },
-
-    // 展示图表
-
 
 
     downloadFinderData() {
@@ -1773,8 +1771,6 @@ export default {
       this.edgesArray = [];
       this.nodesArray = [];
       this.initializeOptions();
-      console.log("searching:", this.searchText);
-      console.log("limit of search result:", this.showNodeNumber, this.searchScore, this.scoreCompare);
       this.requestMapDate(this.searchText, this.selectCondition(), this.initializeOptions, this.showNodeNumber, this.searchScore);
 
     }
@@ -1782,6 +1778,24 @@ export default {
 
   mounted() {
     this.init();
+    
+    const searchIndex = this.$route.query.index;
+    if (searchIndex != null) {
+      // 父元素跳转
+      setTimeout(() => {
+        this.$emit("gotoStart");
+      }, 1000);
+      getAuthorNameById(searchIndex).then(response=>{
+        const newAuthorName = response.data;
+        this.author1Index = searchIndex;
+        this.searchText = newAuthorName;
+        this.findCondition1 = '1';
+        this.isConnectionShow = false;
+        this.loading = true;
+        this.container = document.getElementById("network_id_2");
+        this.singleAuthorSearch();
+      })
+    }
   }
 };
 </script>
