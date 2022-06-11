@@ -103,39 +103,50 @@
 
         </el-row>
         <el-row>
-          <el-col :span="8">
-            <p style="width: 30%;float: left">author limits:</p>
+          <el-col :span="6">
+            <p style="width: 50%;float: left">author limits:</p>
             <el-form-item prop="authorLimit">
               <el-input-number
-                style="width: 40%;margin-top: 2%"
+                style="width: 50%;margin-top: 2%"
                 v-model="ruleFormAuthorDepart.authorLimit"
                 :min="1" :max="10"
                 label="author limits">
             </el-input-number>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
-            <p style="width: 40%;float: left">department limits:</p>
+          <el-col :span="6">
+            <p style="width: 50%;float: left">department limits:</p>
             <el-form-item prop="departmentLimit">
               <el-input-number
-                style="width: 40%;margin-top: 2%"
+                style="width: 50%;margin-top: 2%"
                 v-model="ruleFormAuthorDepart.departmentLimit"
                 :min="1" :max="10"
-                label="author limits">
+                label="department limits">
             </el-input-number>
             </el-form-item>
           </el-col>
-          <el-col :span = "8">
+          <el-col :span="6">
+            <p style="width: 50%;float: left">venue limits:</p>
+            <el-form-item prop="venueLimit">
+              <el-input-number
+                  style="width: 50%;margin-top: 2%"
+                  v-model="ruleFormAuthorDepart.venueLimit"
+                  :min="1" :max="20"
+                  label="venue limits">
+              </el-input-number>
+            </el-form-item>
+          </el-col>
+          <el-col :span = "6">
             <el-button
                 style="margin-top: 2%;margin-left: 5%"
                 @click="searchTopAuthDepart">Search</el-button>
           </el-col>
         </el-row>
         <!--结果展示-->
-        <div style="width: 100%;height: 1000px;box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;position: relative">
+        <div style="width: 100%;height: 1500px;box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;position: relative;background-color: rgb(91,92,110)">
           <div v-if="!hasDataAuthDept"
               style="width: 70%;height: 70%;position: absolute;top:0;left:0;right:0;bottom: 0;margin:auto">
-            <h1>No DATA</h1>
+            <h1 style="color: white">No DATA</h1>
             <el-image
                 :src="require('../assets/buddy-pie-chart.png')"
                 class="dynamic-animation">
@@ -153,7 +164,11 @@
           <div
               v-show="hasDataAuthDept"
               ref="radar-chart-author-info"
-              style="min-width: 100%;max-width:100%;min-height: 500px;max-height: 50%;margin-top: -1%"></div>
+              style="min-width: 100%;max-width:100%;min-height: 500px;max-height: 50%"></div>
+          <div
+              v-show="hasDataAuthDept"
+              ref="tree-chart-venue"
+              style="min-width: 80%;max-width:80%;min-height: 500px;max-height: 50%;margin: auto"></div>
           <el-button v-show="hasDataAuthDept"
                     style="position: relative;left: 40%;top:-50%"
                     @click="goToVisualizationPage"> Go to search this author</el-button>
@@ -237,9 +252,8 @@
 import {sendComment} from '@/api/board';
 import '@/assets/theme.js'
 import * as echarts from 'echarts';
-import ResultMap from "@/components/ResultMap";
 import {findAreaSuggestion} from "@/api/finder";
-import {searchImportAuthDepart} from "@/api/author";
+import {searchImportAuthDepart, searchImportVenues} from "@/api/author";
 
 const indicatorOptions = [{
       value: 'pi',
@@ -270,6 +284,11 @@ const labelSetting = {
   fontSize: 16
 };
 
+//颜色
+const itemStyle= {"color": "blue"}
+
+
+
 export default {
   name: 'Map',
   components: {
@@ -294,6 +313,8 @@ export default {
         //作者的数量
         authorLimit: 1,
         departmentLimit: 1,
+        // 期刊的数量
+        venueLimit: 1
       },
       rulesAuthorDepart: {
         indicator:[
@@ -339,6 +360,7 @@ export default {
         this.$message.error("There's something wrong with your network.");
       })
     },
+
     //绘制作者详情柱状图
     drawAuthorInfo(type, symbol,chosedAuthor,data){
       let chosedData = null
@@ -349,7 +371,8 @@ export default {
 
       return {
         title: {
-          text: chosedAuthor + "'s basic information"
+          text: chosedAuthor + "'s basic information",
+          top: 20
         },
         legend: {
           data: [chosedAuthor, 'best author']
@@ -465,6 +488,83 @@ export default {
         ]
       };
     },
+    //绘制部门雷达图图形
+    drawDeptInfo(data,departLimit){
+      const chart = this.$refs["radar-chart-dept"]
+      if (chart) {
+        const myChart = echarts.init(chart,'purple-passion')
+        // 部门名称
+        let nameArr = []
+        data.importantDepartments.forEach((item)=>{
+          nameArr.push(item.departmentName)
+        })
+        //avghi最大值
+        let hiMax = data.importantDepartments.reduce((result,item)=>{
+          return result < parseInt(item.avgHi) ? parseInt(item.avgHi) : result
+        },0)
+        //pi最大值
+        let piMax = data.importantDepartments.reduce((result,item)=>{
+          return result < parseFloat(item.avgPi) ? parseFloat(item.avgPi) : result
+        },0)
+        // upi最大值
+        let upiMax = data.importantDepartments.reduce((result,item) => {
+          return result < parseFloat(item.avgUpi) ? parseFloat(item.avgUpi) : result
+        },0)
+        //具体数据
+        let circleData = []
+        data.importantDepartments.forEach((item,index) => {
+          let obj = {}
+          let arr = []
+          arr.push(item.avgHi)
+          arr.push(item.avgPi)
+          arr.push(item.avgUpi)
+          obj.value = arr
+          obj.name = item.departmentName
+          circleData.push(obj)
+        })
+        const option = {
+          title: {
+            text: 'Top ' + departLimit + ' Departments',
+            top: 50
+          },
+          legend: {
+            data: nameArr
+          },
+
+          radar: {
+            // shape: 'circle',
+            indicator: [
+              {name: 'hi', max: hiMax + Math.random(hiMax)*hiMax},
+              {name: 'pi', max: piMax + Math.random(piMax)*piMax},
+              {name: 'upi', max: upiMax + Math.random(upiMax)*upiMax},
+            ],
+            triggerEvent: true
+          },
+          series: [
+            {
+              name: 'Budget vs spending',
+              type: 'radar',
+              data: circleData
+            }
+          ],
+
+
+        };
+
+        myChart.setOption(option)
+        myChart.resize()
+        window.addEventListener("resize", function() {
+          myChart.resize()
+        })
+
+        this.$on('hook:destroyed',()=>{
+          window.removeEventListener("resize", function() {
+            myChart.resize();
+          });
+        })
+
+    }
+      },
     //绘制作者雷达图图形
     drawImportAuthDept(data,authorLimit){
       const chart = this.$refs["radar-chart-author-dept"]
@@ -511,7 +611,8 @@ export default {
         })
         const option = {
           title: {
-            text: 'Top ' + authorLimit + ' Author'
+            text: 'Top ' + authorLimit + ' Author',
+            top: 50
           },
           legend: {
             data: nameArr
@@ -520,11 +621,11 @@ export default {
           radar: {
             // shape: 'circle',
             indicator: [
-              {name: 'hi', max: hiMax + Math.random(hiMax)},
-              {name: 'pc', max: pcMax + Math.random(pcMax)},
-              {name: 'pi', max: piMax + Math.random(piMax)},
-              {name: 'cn', max: cnMax + Math.random(cnMax)},
-              {name: 'upi', max: upiMax + Math.random(upiMax)},
+              {name: 'hi', max: hiMax + Math.random(hiMax)*hiMax},
+              {name: 'pc', max: pcMax + Math.random(pcMax)*pcMax},
+              {name: 'pi', max: piMax + Math.random(piMax)*piMax},
+              {name: 'cn', max: cnMax + Math.random(cnMax)*cnMax},
+              {name: 'upi', max: upiMax + Math.random(upiMax)*upiMax},
             ],
             triggerEvent: true
           },
@@ -576,6 +677,146 @@ export default {
 
 
     },
+    // 绘制关键期刊树状图
+    drawVenueTree(data){
+      const chart = this.$refs["tree-chart-venue"]
+      if(chart){
+        const myChart = echarts.init(chart,'purple-passion')
+        let option;
+        //组织json数据
+        let jsonStr = {}
+        jsonStr.name = "Important Venues"
+        jsonStr.itemStyle = {'color': 'yellow'}
+        jsonStr.children = []
+        data.forEach(item=>{
+          let newChildren = []
+          let newName = item.venueName
+          newChildren.push({
+            name: 'paper count',
+            itemStyle: 'red',
+            children: [{
+              name: item.paperCount.toString(),
+              children:[]
+            }]
+          })
+          newChildren.push({
+            name: 'reference count',
+            itemStyle: 'red',
+            children: [{
+              name: item.referenceCount.toString(),
+              children: []
+            }
+            ]
+          })
+          let papersChildren = []
+          item.papers.forEach((paperItem,index)=>{
+            papersChildren.push({
+              name: 'paper ' + index.toString(),
+              itemStyle: 'green',
+              children:[{
+                name: 'index',
+                children: [
+                    {
+                      name: paperItem.index,
+                      children: []
+                    }]
+              },{
+                name:'abstracts',
+                itemStyle: 'green',
+                children:[{
+                  name: paperItem.abstracts,
+                  children: []}]
+              },{
+                name: 'publication venue',
+                itemStyle: 'green',
+                children: [{
+                  name: paperItem.publication_venue,
+                  children: []
+                }]
+              },{
+                name: 'paper title',
+                itemStyle: 'green',
+                children: [{
+                  name: paperItem.paper_title,
+                children: []
+                }]
+              },{
+                name: 'year',
+                itemStyle: 'green',
+                children: [{
+                  name: paperItem.year,
+                  children: []
+                }]
+              }]
+            })
+          })
+          newChildren.push({
+            name: 'papers',
+            itemStyle: 'red',
+            children: papersChildren
+          })
+          jsonStr.children.push({
+            name: newName,
+            children: newChildren
+          })
+        })
+        console.log('json',jsonStr)
+        myChart.showLoading();
+          myChart.hideLoading();
+          jsonStr.children.forEach(function (datum, index) {
+            index % 2 === 0 && (datum.collapsed = true);
+          });
+          myChart.setOption(
+              (option = {
+                tooltip: {
+                  trigger: 'item',
+                  triggerOn: 'mousemove'
+                },
+                series: [
+                  {
+                    type: 'tree',
+                    data: [jsonStr],
+                    top: '1%',
+                    left: '7%',
+                    bottom: '1%',
+                    right: '20%',
+                    symbolSize: 7,
+                    label: {
+                      position: 'left',
+                      verticalAlign: 'middle',
+                      align: 'right',
+                      fontSize: 9
+                    },
+                    leaves: {
+                      label: {
+                        position: 'right',
+                        verticalAlign: 'middle',
+                        align: 'left'
+                      }
+                    },
+                    emphasis: {
+                      focus: 'descendant'
+                    },
+                    expandAndCollapse: true,
+                    animationDuration: 550,
+                    animationDurationUpdate: 750,
+                  }
+                ]
+              })
+          );
+
+        myChart.resize()
+        window.addEventListener("resize", function() {
+          myChart.resize()
+        })
+
+        this.$on('hook:destroyed',()=>{
+          window.removeEventListener("resize", function() {
+            myChart.resize();
+          });
+        })
+      }
+    },
     //搜索关键作者和部门
     searchTopAuthDepart(){
       this.$refs['ruleFormAuthorDepart'].validate((valid) => {
@@ -591,18 +832,22 @@ export default {
             authorLimit: this.ruleFormAuthorDepart.authorLimit,
             departmentLimit: this.ruleFormAuthorDepart.departmentLimit
           }
-          let authorLimit = this.ruleFormAuthorDepart.authorLimit
+          // 第一个查询
           searchImportAuthDepart(param).then((res)=>{
             console.log(res.data)
             this.authorData = res.data
             this.chosedAuthor = null
             if(res.data.importAuthors.length !== 0 || res.data.importantDepartments.length !== 0){
+              console.log('获取到的数据',res.data)
               this.hasDataAuthDept = true
+              let authorLimit = res.data.importAuthors.length
+              let departmentLimit = res.data.importantDepartments.length
               this.$nextTick(()=>{
                 for (let i = 1; i < 10000; i++) {
                   clearInterval(i);
                 }
                 this.drawImportAuthDept(res.data,authorLimit)
+                this.drawDeptInfo(res.data,departmentLimit)
                 this.chosedAuthor = res.data.importAuthors[0].name
                 const options = [
                   this.drawAuthorInfo('pictorialBar',null,res.data.importAuthors[0].name,res.data),
@@ -622,8 +867,22 @@ export default {
             }
             console.log(this.hasDataAuthDept)
           }).catch(err=>{
-            console.log(err)
+            this.$message.error('There is something wrong with the server side.')
           })
+
+          //第二个查询
+          let secParam = {
+            area: this.ruleFormAuthorDepart.chosedArea.toString(),
+            limit: parseInt(this.ruleFormAuthorDepart.venueLimit)
+          }
+          searchImportVenues(secParam).then((res)=>{
+              console.log('获取到的期刊数据',res.data)
+              this.drawVenueTree(res.data)
+          }).catch((err)=>{
+            this.$message.error('There is something wrong with the server side.')
+          })
+
+
         } else {
           console.log('error submit!!');
           return false;

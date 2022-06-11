@@ -69,3 +69,11 @@ export function searchImportAuthDepart(param){
         params: param
     })
 }
+
+export function searchImportVenues(param){
+    return request({
+        url: '/importantVenues',
+        method: 'get',
+        params: param
+    })
+}
