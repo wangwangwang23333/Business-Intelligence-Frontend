@@ -253,7 +253,8 @@ import {sendComment} from '@/api/board';
 import '@/assets/theme.js'
 import * as echarts from 'echarts';
 import {findAreaSuggestion} from "@/api/finder";
-import {searchImportAuthDepart, searchImportVenues} from "@/api/author";
+import {searchImportAuthDepart, searchImportVenues,getAuthorNameById} from "@/api/author";
+
 
 const indicatorOptions = [{
       value: 'pi',
@@ -337,14 +338,41 @@ export default {
   methods: {
     //前往图数据页面
     goToVisualizationPage(){
-        let index = this.authorData.importAuthors.reduce((result, item) => {
-          if(result)
-              return result
-          else
-              return item.name === this.chosedAuthor ? item.index : null
-        }, null)
-      console.log(index)
-      this.$router.push({ path:'/finder', params:{index:index} })
+      let index = this.authorData.importAuthors.reduce((result, item) => {
+        if (result)
+          return result
+        else
+          return item.name === this.chosedAuthor ? item.index : null
+      }, null)
+
+      if (index == null) {
+        return;
+      }
+      // 获取作者名称
+      getAuthorNameById(index).then(response=>{
+        const newAuthorName = response.data;
+        // 关闭
+        this.$confirm('Search for author: '+ newAuthorName+ '?', 'Confirmation', {
+          confirmButtonText: 'Yes',
+          cancelButtonText: 'No',
+          type: 'warning'
+        }).then(() => {
+          // 以该作者进行搜索
+          const routeUrl = this.$router.resolve({
+            path: "/finder",
+            query: {
+              index: index,
+            }
+          });
+          // 打开新页面
+          window.open(routeUrl.href, '_blank');
+          return;
+          
+        }).catch(() => {
+
+        }) 
+      })
+      
     },
     //搜索领域
     autoSearchArea(key, cb){

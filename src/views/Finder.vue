@@ -58,7 +58,9 @@
     <!--    功能板块-->
     <div style="margin-bottom: 2em;">
       <!--搜索框-->
-      <ResultMap :showTable="false"/>
+      <ResultMap :showTable="false"
+      @gotoStart="gotoStart"
+      />
     </div>
 
 
@@ -117,11 +119,11 @@
             <p>If you have any feedback, please contact us.</p>
 
             <b>EMAIL</b>
-            <div>tj_software2021@163.com</div>
+            <div>19921305202@163.com</div>
             <br>
 
             <b>ADDRESS</b>
-            <div>Tongji University, No.1239 siping Road, Yangpu District, Shanghai</div>
+            <div>Tongji University, No.4800 CaoAn Road, Jiading District, Shanghai</div>
             <br>
           </div>
         </div>
