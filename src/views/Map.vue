@@ -170,7 +170,7 @@
               ref="tree-chart-venue"
               style="min-width: 80%;max-width:80%;min-height: 500px;max-height: 50%;margin: auto"></div>
           <el-button v-show="hasDataAuthDept"
-                    style="position: relative;left: 40%;top:-50%"
+                    style="position: relative;left: 40%;top:-60%"
                     @click="goToVisualizationPage"> Go to search this author</el-button>
         </div>
       </el-form>
@@ -637,7 +637,7 @@ export default {
           obj.name = item.name
           circleData.push(obj)
         })
-        const option = {
+        let option = {
           title: {
             text: 'Top ' + authorLimit + ' Author',
             top: 50
@@ -790,7 +790,6 @@ export default {
         })
         console.log('json',jsonStr)
         myChart.showLoading();
-          myChart.hideLoading();
           jsonStr.children.forEach(function (datum, index) {
             index % 2 === 0 && (datum.collapsed = true);
           });
@@ -843,10 +842,12 @@ export default {
             myChart.resize();
           });
         })
+        myChart.hideLoading();
       }
     },
     //搜索关键作者和部门
     searchTopAuthDepart(){
+
       this.$refs['ruleFormAuthorDepart'].validate((valid) => {
         if (valid) {
           if(!this.ruleFormAuthorDepart.chosedArea){
@@ -891,11 +892,10 @@ export default {
                   optionIndex = (optionIndex + 1) % options.length;
                   _this.my_Chart.setOption(options[optionIndex]);
                 }, 2500);
+
               })
             }
             console.log(this.hasDataAuthDept)
-          }).catch(err=>{
-            this.$message.error('There is something wrong with the server side.')
           })
 
           //第二个查询
@@ -906,6 +906,7 @@ export default {
           searchImportVenues(secParam).then((res)=>{
               console.log('获取到的期刊数据',res.data)
               this.drawVenueTree(res.data)
+
           }).catch((err)=>{
             this.$message.error('There is something wrong with the server side.')
           })
