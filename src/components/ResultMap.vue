@@ -933,7 +933,8 @@ export default {
           image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-object-96.png'
         });
 
-        const authorSearchTask  = response.data.map(item => {
+        // 最多只查看该领域的20个作者
+        const authorSearchTask  = response.data.slice(0,20).map(item => {
           // 加入author结点
           this.nodesArray.push({
             // id
@@ -970,20 +971,23 @@ export default {
             const paperList = item.data.slice(0,10);
 
             paperList.forEach((paper) => {
-              // 绘制结点
-              this.nodesArray.push({
-                id: 'p' + paper.index, 
-                // title，只显示一部分信息
-                label:this.formatLongStr(paper.paper_title),
-                description: paper,
-                color: {
-                  background: '#f57797',
-                  highlight: "#fbc7d4",
-                  hover: "#fbc7d4"
-                },
-                icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
-                image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-paper-64.png'
-              });
+              // 避免加入重复的paper
+              if (this.nodesArray.find(item=>item.id == 'p' + paper.index)
+                == undefined) {
+                  this.nodesArray.push({
+                    id: 'p' + paper.index, 
+                    // title，只显示一部分信息
+                    label:this.formatLongStr(paper.paper_title),
+                    description: paper,
+                    color: {
+                      background: '#f57797',
+                      highlight: "#fbc7d4",
+                      hover: "#fbc7d4"
+                    },
+                    icon: { face: 'FontAwesome', code: '\uf2bc', weight: 5, size: 40, color:'#2B7CE9' },
+                    image: 'https://wwwtypora.oss-cn-shanghai.aliyuncs.com/icons8-paper-64.png'
+                  });
+              }
 
               // 结点和边相连
               this.edgesArray.push({
@@ -991,6 +995,7 @@ export default {
                 to: 'p' + paper.index,
                 label: "Write",
               });
+              
             })
           })
 

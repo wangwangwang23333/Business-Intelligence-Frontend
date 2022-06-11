@@ -398,7 +398,8 @@ export default{
         let param = new FormData()
         param.append('file', this.fileList[0].raw)
         param.append('name',this.fileList[0].name)
-        uploadCsv(param, this.currentChosedTableName).then((res)=>{
+        uploadCsv(param, this.currentChosedTableName,
+          this.selectedUpdateType).then((res)=>{
           console.log(res)
           this.$message({
             message: 'Successfully insert the data!',
