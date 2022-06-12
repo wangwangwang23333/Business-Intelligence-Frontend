@@ -484,7 +484,6 @@
           this.$refs["commentBoard"].scrollIntoView(true);
 
         }).catch((err) => {
-          console.log(err);
           this.$message.error("There's something wrong with your network.");
         })
       },
@@ -493,7 +492,6 @@
       },
 
       handleDownload(index, row) {
-        console.log(index, row.table);
         window.open('https://lfs.aminer.cn/lab-datasets/aminerdataset/' + row.table);
 
         //window.open('files/database/'+row.table+'.csv')
